@@ -2,45 +2,56 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Users, CheckCircle2, Clock } from "lucide-react"
-
-const mockCircles = [
-  {
-    id: 1,
-    name: "Community Builders Circle",
-    members: 5,
-    contribution: "$300",
-    status: "active",
-    progress: 60,
-    nextMember: "You",
-    nextDate: "Mar 15, 2025",
-    myContributionStatus: "paid",
-  },
-  {
-    id: 2,
-    name: "Tech Friends Savings",
-    members: 6,
-    contribution: "$500",
-    status: "active",
-    progress: 30,
-    nextMember: "Sarah",
-    nextDate: "Feb 28, 2025",
-    myContributionStatus: "paid",
-  },
-  {
-    id: 3,
-    name: "Local Business Network",
-    members: 4,
-    contribution: "$250",
-    status: "active",
-    progress: 75,
-    nextMember: "Mike",
-    nextDate: "Mar 22, 2025",
-    myContributionStatus: "pending",
-  },
-]
+import { ArrowRight, Users, CheckCircle2, Clock, Loader2 } from "lucide-react"
+import { useUserPools } from "@/hooks/usePools"
+import { formatDistanceToNow } from "date-fns"
 
 export default function ActiveCirclesSection() {
+  const { data: userPools, isLoading } = useUserPools()
+
+  // Helper untuk format USDC amount (6 decimals)
+  const formatUSDC = (amount: bigint) => {
+    return (Number(amount) / 1e6).toFixed(2)
+  }
+
+  // Helper untuk calculate progress
+  const getProgress = (pool: typeof userPools[0]) => {
+    if (!pool || pool.totalCycles === 0) return 0
+    return Math.round((pool.currentCycle / pool.totalCycles) * 100)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-foreground">Active Circles</h2>
+        </div>
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+          <span className="ml-2 text-muted-foreground">Loading...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (!userPools || userPools.length === 0) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-foreground">Active Circles</h2>
+          <Link href="/circles">
+            <Button variant="outline" size="sm" className="gap-1 bg-transparent">
+              View All
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </Link>
+        </div>
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">You haven't joined any circles yet</p>
+        </div>
+      </div>
+    )
+  }
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -54,63 +65,82 @@ export default function ActiveCirclesSection() {
       </div>
 
       <div className="flex flex-col gap-3">
-        {mockCircles.map((circle) => (
-          <Link key={circle.id} href={`/circles/${circle.id}`}>
+        {userPools.map((pool) => {
+          const progress = getProgress(pool)
+          const joinedDate = new Date(Number(pool.userJoinedAt) * 1000)
+
+          return (
+            <Link key={pool.id} href={`/circles/${pool.id}`}>
             <div className="bg-card border border-border rounded-lg p-6 hover:border-accent/50 hover:bg-card/80 transition-all cursor-pointer">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <h3 className="font-semibold text-foreground text-lg mb-1">{circle.name}</h3>
+                    <h3 className="font-semibold text-foreground text-lg mb-1">{pool.name}</h3>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Users className="w-4 h-4" />
-                      {circle.members} members
+                        {pool.maxMembers} max members
+                      </span>
+                      <span className="font-mono text-foreground">
+                        ${formatUSDC(pool.contributionPerPeriod)}/period
                     </span>
-                    <span className="font-mono text-foreground">{circle.contribution}/month</span>
+                    </div>
                   </div>
-                </div>
                 <div className="text-right">
-                  <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-accent/10 text-accent text-xs font-semibold">
-                    <div className="w-2 h-2 rounded-full bg-accent"></div>
-                    Active
+                    <div
+                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${
+                        pool.state === "Active"
+                          ? "bg-accent/10 text-accent"
+                          : pool.state === "Completed"
+                            ? "bg-green-500/10 text-green-500"
+                            : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      <div
+                        className={`w-2 h-2 rounded-full ${
+                          pool.state === "Active"
+                            ? "bg-accent"
+                            : pool.state === "Completed"
+                              ? "bg-green-500"
+                              : "bg-muted-foreground"
+                        }`}
+                      ></div>
+                      {pool.state}
                   </div>
                 </div>
               </div>
 
               {/* Progress Bar */}
+                {pool.state === "Active" && (
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs text-muted-foreground">Cycle Progress</span>
-                  <span className="text-xs font-semibold text-foreground">{circle.progress}%</span>
+                      <span className="text-xs font-semibold text-foreground">{progress}%</span>
                 </div>
                 <div className="w-full bg-muted rounded-full h-2">
                   <div
                     className="bg-accent h-2 rounded-full transition-all"
-                    style={{ width: `${circle.progress}%` }}
+                        style={{ width: `${progress}%` }}
                   ></div>
                 </div>
               </div>
+                )}
 
               {/* Info Grid */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-4 border-t border-border">
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Next Payout</p>
-                  <p className="font-mono text-sm font-semibold text-foreground">{circle.nextMember}</p>
-                  <p className="text-xs text-muted-foreground">{circle.nextDate}</p>
+                    <p className="text-xs text-muted-foreground mb-1">Your Contribution</p>
+                    <p className="font-mono text-sm font-semibold text-foreground">
+                      ${formatUSDC(pool.userContribution)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Joined {formatDistanceToNow(joinedDate, { addSuffix: true })}
+                    </p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Your Contribution</p>
+                    <p className="text-xs text-muted-foreground mb-1">Status</p>
                   <div className="flex items-center gap-2">
-                    {circle.myContributionStatus === "paid" ? (
-                      <>
                         <CheckCircle2 className="w-4 h-4 text-accent" />
-                        <span className="text-xs font-semibold text-accent">Paid</span>
-                      </>
-                    ) : (
-                      <>
-                        <Clock className="w-4 h-4 text-yellow-600" />
-                        <span className="text-xs font-semibold text-yellow-600">Pending</span>
-                      </>
-                    )}
+                      <span className="text-xs font-semibold text-accent">Member</span>
                   </div>
                 </div>
                 <div className="col-span-2 md:col-span-1">
@@ -122,7 +152,8 @@ export default function ActiveCirclesSection() {
               </div>
             </div>
           </Link>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

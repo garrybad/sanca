@@ -1,40 +1,58 @@
 "use client"
 
 import { TrendingDown, TrendingUp, Calendar } from "lucide-react"
-
-const stats = [
-  {
-    label: "Total Contributed",
-    value: "$2,400",
-    change: "Across 3 circles",
-    icon: TrendingDown,
-    color: "text-foreground",
-  },
-  {
-    label: "Total Received",
-    value: "$1,200",
-    change: "From 1 payout",
-    icon: TrendingUp,
-    color: "text-accent",
-  },
-  {
-    label: "Pending Payouts",
-    value: "$4,200",
-    change: "Across 2 circles",
-    icon: Calendar,
-    color: "text-accent",
-  },
-]
+import { useUserStats } from "@/hooks/useUserStats"
+import { Loader2 } from "lucide-react"
 
 export default function WalletStats() {
+  const { data: stats, isLoading } = useUserStats()
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="bg-card border border-border rounded-lg p-6">
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  const statsData = [
+    {
+      label: "Total Contributed",
+      value: `$${stats?.totalContributed.toFixed(2) || "0.00"}`,
+      change: `Across ${stats?.totalPools || 0} ${stats?.totalPools === 1 ? "circle" : "circles"}`,
+      icon: TrendingDown,
+      color: "text-foreground",
+    },
+    {
+      label: "Total Received",
+      value: `$${stats?.totalReceived.toFixed(2) || "0.00"}`,
+      change: stats?.totalReceived && stats.totalReceived > 0 ? "From payouts" : "No payouts yet",
+      icon: TrendingUp,
+      color: "text-accent",
+    },
+    {
+      label: "Pending Payouts",
+      value: `$${stats?.pendingPayouts.toFixed(2) || "0.00"}`,
+      change: `Across ${stats?.activePools || 0} ${stats?.activePools === 1 ? "circle" : "circles"}`,
+      icon: Calendar,
+      color: "text-accent",
+    },
+  ]
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {stats.map((stat) => {
+      {statsData.map((stat) => {
         const Icon = stat.icon
         return (
           <div key={stat.label} className="bg-card border border-border rounded-lg p-6">
             <div className="flex items-start justify-between mb-4">
-              <div className={`p-2 rounded-lg bg-${stat.color === "text-accent" ? "accent" : "primary"}/10`}>
+              <div className={`p-2 rounded-lg ${stat.color === "text-accent" ? "bg-accent/10" : "bg-primary/10"}`}>
                 <Icon className={`w-5 h-5 ${stat.color}`} />
               </div>
             </div>

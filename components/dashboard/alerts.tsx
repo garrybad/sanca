@@ -1,46 +1,80 @@
 "use client"
 
-import { CheckCircle2, Clock } from "lucide-react"
+import { CheckCircle2, Clock, Loader2, AlertTriangle } from "lucide-react"
+import { useUserAlerts } from "@/hooks/useUserAlerts"
+import Link from "next/link"
 
-const mockAlerts = [
-  {
-    id: 1,
-    type: "reminder",
-    title: "Contribution Due Tomorrow",
-    message: "Community Builders Circle contribution of $300 is due tomorrow",
+export default function AlertsSection() {
+  const { data: alerts, isLoading } = useUserAlerts()
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-4">
+        <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  if (!alerts || alerts.length === 0) return null
+
+  const getAlertConfig = (type: string) => {
+    switch (type) {
+      case "reminder":
+        return {
     icon: Clock,
     color: "text-yellow-600",
     bgColor: "bg-yellow-600/10",
-  },
-  {
-    id: 2,
-    type: "success",
-    title: "Payout Received",
-    message: "You received $1,500 from Tech Friends Savings circle",
+        }
+      case "success":
+        return {
+          icon: CheckCircle2,
+          color: "text-accent",
+          bgColor: "bg-accent/10",
+        }
+      case "warning":
+        return {
+          icon: AlertTriangle,
+          color: "text-orange-500",
+          bgColor: "bg-orange-500/10",
+        }
+      default:
+        return {
     icon: CheckCircle2,
     color: "text-accent",
     bgColor: "bg-accent/10",
-  },
-]
-
-export default function AlertsSection() {
-  if (mockAlerts.length === 0) return null
+        }
+    }
+  }
 
   return (
     <div className="space-y-3">
-      {mockAlerts.map((alert) => {
-        const Icon = alert.icon
-        return (
-          <div key={alert.id} className={`${alert.bgColor} border border-current/20 rounded-lg p-4`}>
+      {alerts.map((alert) => {
+        const config = getAlertConfig(alert.type)
+        const Icon = config.icon
+
+        const content = (
+          <div className={`${config.bgColor} border border-current/20 rounded-lg p-4`}>
             <div className="flex gap-3">
-              <Icon className={`w-5 h-5 ${alert.color} flex-shrink-0 mt-0.5`} />
+              <Icon className={`w-5 h-5 ${config.color} flex-shrink-0 mt-0.5`} />
               <div className="flex-1">
-                <p className={`font-semibold text-sm ${alert.color}`}>{alert.title}</p>
+                <p className={`font-semibold text-sm ${config.color}`}>{alert.title}</p>
                 <p className="text-sm text-muted-foreground">{alert.message}</p>
               </div>
             </div>
           </div>
         )
+
+        if (alert.poolId) {
+          return (
+            <Link key={alert.id} href={`/circles/${alert.poolId}`}>
+              <div className="hover:opacity-80 transition-opacity cursor-pointer">
+                {content}
+              </div>
+            </Link>
+          )
+        }
+
+        return <div key={alert.id}>{content}</div>
       })}
     </div>
   )

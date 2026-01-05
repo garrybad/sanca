@@ -2,30 +2,91 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Users, TrendingUp, Calendar } from "lucide-react"
+import { ArrowLeft, Users, TrendingUp, Calendar, Loader2 } from "lucide-react"
 import CircleDetailTabs from "@/components/circles/detail-tabs"
 import { useParams } from "next/navigation"
+import { usePoolDetail } from "@/hooks/usePools"
+import { formatDistanceToNow, format } from "date-fns"
+import { JoinPoolButton } from "@/components/circles/join-pool-button"
+import { ContributeButton } from "@/components/circles/contribute-button"
+import { TriggerDrawButton } from "@/components/circles/trigger-draw-button"
+import { WithdrawButton } from "@/components/circles/withdraw-button"
 
 export default function CircleDetailPage() {
-//   const circleId = Number.parseInt(params.id)
   const { id } = useParams<{ id: string }>();
-  const circleId = Number.parseInt(id);
+  const poolId = id as string;
 
-  // Mock circle data
-  const circle = {
-    id: circleId,
-    name: "Community Builders Circle",
-    description: "A community of locals saving together for financial growth",
-    status: "active",
-    members: 5,
-    contribution: "$300",
-    totalFund: "$1,500",
-    cycleDuration: "5 months",
-    nextPayout: "Mar 15, 2025",
-    nextPayoutMember: "You",
-    progress: 60,
-    created: "January 2025",
+  // Fetch pool detail dari Ponder
+  const { data, isLoading, error } = usePoolDetail(poolId);
+
+  // Helper untuk convert string/number ke BigInt
+  const toBigInt = (value: bigint | string | number): bigint => {
+    if (typeof value === 'bigint') return value;
+    if (typeof value === 'string') return BigInt(value);
+    return BigInt(value);
+  };
+
+  // Helper untuk format USDC amount (6 decimals)
+  const formatUSDC = (amount: bigint | string | number) => {
+    const bigIntAmount = toBigInt(amount);
+    return (Number(bigIntAmount) / 1e6).toFixed(2);
+  };
+
+  // Helper untuk calculate progress
+  const getProgress = () => {
+    if (!data?.pool || data.pool.totalCycles === 0) return 0;
+    return Math.round((data.pool.currentCycle / data.pool.totalCycles) * 100);
+  };
+
+  // Helper untuk calculate total fund (contribution * maxMembers)
+  const getTotalFund = () => {
+    if (!data?.pool) return "0";
+    const contribution = toBigInt(data.pool.contributionPerPeriod);
+    const total = contribution * BigInt(data.pool.maxMembers);
+    return formatUSDC(total);
+  };
+
+  // Helper untuk format period duration (always in days)
+  const formatPeriodDuration = (seconds: bigint | string | number) => {
+    const bigIntSeconds = toBigInt(seconds);
+    const days = Math.round(Number(bigIntSeconds) / 86400);
+    return `${days} ${days === 1 ? "day" : "days"}`;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        <span className="ml-2 text-muted-foreground">Loading pool...</span>
+      </div>
+    );
   }
+
+  if (error || !data?.pool) {
+    return (
+      <div className="space-y-8">
+        <Link href="/circles">
+          <Button variant="ghost" size="sm" className="gap-1">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Circles
+          </Button>
+        </Link>
+        <div className="text-center py-12">
+          <p className="text-destructive mb-4">
+            {error ? `Failed to load pool: ${error.message}` : "Pool not found"}
+          </p>
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const pool = data.pool;
+  const progress = getProgress();
+  const totalFund = getTotalFund();
+  const createdDate = new Date(Number(toBigInt(pool.createdAtTimestamp)) * 1000);
 
   return (
     <div className="space-y-8">
@@ -43,59 +104,152 @@ export default function CircleDetailPage() {
       <div className="bg-card border border-border rounded-lg p-8">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-6">
           <div className="flex-1">
-            <h1 className="text-4xl font-bold text-foreground mb-2">{circle.name}</h1>
-            <p className="text-lg text-muted-foreground">{circle.description}</p>
+            <h1 className="text-4xl font-bold text-foreground mb-2">{pool.name}</h1>
+            <p className="text-lg text-muted-foreground mb-3">
+              Created by {pool.creator.slice(0, 6)}...{pool.creator.slice(-4)}
+            </p>
+            {pool.description && (
+              <p className="text-sm text-muted-foreground max-w-2xl">
+                {pool.description}
+              </p>
+            )}
           </div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 text-accent mt-4 md:mt-0 w-fit">
-            <div className="w-2 h-2 rounded-full bg-accent"></div>
-            <span className="text-sm font-semibold">Active</span>
+          <div
+            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full mt-4 md:mt-0 w-fit ${
+              pool.state === "Active"
+                ? "bg-accent/10 text-accent"
+                : pool.state === "Completed"
+                  ? "bg-green-500/10 text-green-500"
+                  : "bg-muted text-muted-foreground"
+            }`}
+          >
+            <div
+              className={`w-2 h-2 rounded-full ${
+                pool.state === "Active"
+                  ? "bg-accent"
+                  : pool.state === "Completed"
+                    ? "bg-green-500"
+                    : "bg-muted-foreground"
+              }`}
+            ></div>
+            <span className="text-sm font-semibold">{pool.state}</span>
           </div>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-border">
           <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Total Members</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Max Members</p>
             <p className="text-2xl font-bold text-foreground flex items-center gap-2">
               <Users className="w-5 h-5 text-accent" />
-              {circle.members}
+              {pool.maxMembers}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {data.members.length} joined
             </p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Monthly Contribution</p>
-            <p className="text-2xl font-bold text-foreground font-mono">{circle.contribution}</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Contribution</p>
+            <p className="text-2xl font-bold text-foreground font-mono">
+              ${formatUSDC(pool.contributionPerPeriod)}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              per cycle ({formatPeriodDuration(pool.periodDuration)} per cycle)
+            </p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Total Fund</p>
             <p className="text-2xl font-bold text-accent font-mono flex items-center gap-2">
               <TrendingUp className="w-5 h-5" />
-              {circle.totalFund}
+              ${totalFund}
             </p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Next Payout</p>
-            <p className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-accent" />
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Created</p>
+            <p className="text-sm text-foreground flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-accent" />
+              {format(createdDate, "MMM d, yyyy")}
             </p>
-            <p className="text-sm text-muted-foreground">{circle.nextPayout}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {formatDistanceToNow(createdDate, { addSuffix: true })}
+            </p>
           </div>
         </div>
 
         {/* Progress */}
-        <div className="mt-8 pt-6 border-t border-border">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-foreground">Cycle Progress</h3>
-            <span className="text-sm font-semibold text-foreground">{circle.progress}%</span>
+        {pool.state === "Active" && (
+          <div className="mt-8 pt-6 border-t border-border">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-foreground">Cycle Progress</h3>
+              <span className="text-sm font-semibold text-foreground">{progress}%</span>
+            </div>
+            <div className="w-full bg-muted rounded-full h-3">
+              <div
+                className="bg-accent h-3 rounded-full transition-all"
+                style={{ width: `${progress}%` }}
+              ></div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Cycle {pool.currentCycle} of {pool.totalCycles} completed
+            </p>
           </div>
-          <div className="w-full bg-muted rounded-full h-3">
-            <div className="bg-accent h-3 rounded-full transition-all" style={{ width: `${circle.progress}%` }}></div>
+        )}
+
+        {/* Join Pool Button */}
+        {pool.state === "Open" && (
+          <div className="mt-8 pt-6 border-t border-border">
+            <JoinPoolButton
+              poolAddress={pool.id as `0x${string}`}
+              poolState={pool.state}
+              currentMembers={data.members.length}
+              maxMembers={pool.maxMembers}
+              members={data.members}
+            />
           </div>
-          <p className="text-xs text-muted-foreground mt-2">3 of 5 cycles completed</p>
-        </div>
+        )}
+
+        {/* Contribute Button */}
+        {pool.state === "Active" && (
+          <div className="mt-8 pt-6 border-t border-border space-y-6">
+            <div>
+              <h3 className="font-semibold text-foreground mb-4">Cycle {pool.currentCycle + 1} Contribution</h3>
+              <ContributeButton
+                poolAddress={pool.id as `0x${string}`}
+                poolState={pool.state}
+                currentCycle={pool.currentCycle}
+                members={data.members}
+                cycleContributions={data.cycleContributions || []}
+              />
+            </div>
+            
+            {/* Trigger Draw Button */}
+            <div>
+              <h3 className="font-semibold text-foreground mb-4">Trigger Draw</h3>
+              <TriggerDrawButton
+                poolAddress={pool.id as `0x${string}`}
+                poolState={pool.state}
+                currentCycle={pool.currentCycle}
+                cycleStartTime={toBigInt(pool.cycleStartTime)}
+                periodDuration={toBigInt(pool.periodDuration)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Withdraw Button */}
+        {pool.state === "Completed" && (
+          <div className="mt-8 pt-6 border-t border-border">
+            <h3 className="font-semibold text-foreground mb-4">Withdraw Funds</h3>
+            <WithdrawButton
+              poolAddress={pool.id as `0x${string}`}
+              poolState={pool.state}
+            />
+          </div>
+        )}
       </div>
 
       {/* Tabs */}
-      <CircleDetailTabs circleId={circleId} />
+      <CircleDetailTabs circleId={pool.id} poolData={data} />
     </div>
-  )
+  );
 }

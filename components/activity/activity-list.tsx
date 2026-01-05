@@ -1,10 +1,13 @@
 "use client"
 
-import { CheckCircle2, TrendingUp, Users, AlertCircle, Clock } from "lucide-react"
+import { CheckCircle2, TrendingUp, Users, AlertCircle, Clock, DollarSign, AlertTriangle, Play, CheckCircle, LogOut } from "lucide-react"
+import { useAllActivities } from "@/hooks/useAllActivities"
+import { formatDistanceToNow } from "date-fns"
+import { Loader2 } from "lucide-react"
 
 interface Activity {
-  id: number
-  type: "contribution" | "payout" | "member_joined" | "cycle_completed" | "reminder"
+  id: string
+  type: "contribution" | "payout" | "member_joined" | "cycle_completed" | "pool_created" | "pool_started" | "pool_completed" | "collateral_liquidated"
   title: string
   description: string
   circle: string
@@ -12,91 +15,46 @@ interface Activity {
   amount?: string
   date: string
   timestamp: Date
-  icon: typeof CheckCircle2
+  icon: typeof CheckCircle2 | typeof TrendingUp | typeof Users | typeof AlertCircle | typeof Clock | typeof DollarSign | typeof AlertTriangle | typeof Play | typeof CheckCircle
   color: string
   bgColor: string
 }
 
-const mockActivities: Activity[] = [
-  {
-    id: 1,
-    type: "contribution",
-    title: "Contribution Received",
-    description: "Your contribution of $300 was received",
-    circle: "Community Builders Circle",
-    amount: "$300",
-    date: "Today at 2:30 PM",
-    timestamp: new Date(),
-    icon: CheckCircle2,
-    color: "text-accent",
-    bgColor: "bg-accent/10",
-  },
-  {
-    id: 2,
-    type: "payout",
-    title: "Payout Completed",
-    description: "Sarah Chen received her payout",
-    circle: "Tech Friends Savings",
-    member: "Sarah Chen",
-    amount: "$2,500",
-    date: "Yesterday at 11:00 AM",
-    timestamp: new Date(Date.now() - 86400000),
-    icon: TrendingUp,
-    color: "text-accent",
-    bgColor: "bg-accent/10",
-  },
-  {
-    id: 3,
-    type: "reminder",
-    title: "Contribution Due",
-    description: "Your contribution is due in 3 days",
-    circle: "Community Builders Circle",
-    amount: "$300",
-    date: "2 days ago",
-    timestamp: new Date(Date.now() - 172800000),
-    icon: Clock,
-    color: "text-yellow-600",
-    bgColor: "bg-yellow-600/10",
-  },
-  {
-    id: 4,
-    type: "member_joined",
-    title: "New Member Joined",
-    description: "James Wilson joined the circle",
-    circle: "Local Business Network",
-    member: "James Wilson",
-    date: "3 days ago",
-    timestamp: new Date(Date.now() - 259200000),
-    icon: Users,
-    color: "text-accent",
-    bgColor: "bg-accent/10",
-  },
-  {
-    id: 5,
-    type: "contribution",
-    title: "Contribution Received",
-    description: "Your contribution of $500 was received",
-    circle: "Tech Friends Savings",
-    amount: "$500",
-    date: "Feb 10, 2025",
-    timestamp: new Date("2025-02-10"),
-    icon: CheckCircle2,
-    color: "text-accent",
-    bgColor: "bg-accent/10",
-  },
-  {
-    id: 6,
-    type: "cycle_completed",
-    title: "Cycle Completed",
-    description: "The 5-month cycle has been completed",
-    circle: "Community Builders Circle",
-    date: "Jan 15, 2025",
-    timestamp: new Date("2025-01-15"),
-    icon: AlertCircle,
-    color: "text-accent",
-    bgColor: "bg-accent/10",
-  },
-]
+const getActivityIcon = (type: Activity["type"]) => {
+  switch (type) {
+    case "contribution":
+      return DollarSign
+    case "payout":
+      return TrendingUp
+    case "member_joined":
+      return Users
+    case "cycle_completed":
+    case "pool_completed":
+      return CheckCircle2
+    case "pool_created":
+      return CheckCircle
+    case "pool_started":
+      return Play
+    case "collateral_liquidated":
+      return AlertTriangle
+    default:
+      return CheckCircle2
+  }
+}
+
+const getActivityColor = (type: Activity["type"]) => {
+  switch (type) {
+    case "payout":
+    case "pool_completed":
+      return { color: "text-green-500", bgColor: "bg-green-500/10" }
+    case "collateral_liquidated":
+      return { color: "text-orange-500", bgColor: "bg-orange-500/10" }
+    case "pool_started":
+      return { color: "text-blue-500", bgColor: "bg-blue-500/10" }
+    default:
+      return { color: "text-accent", bgColor: "bg-accent/10" }
+  }
+}
 
 interface ActivityListProps {
   searchQuery: string
@@ -104,16 +62,70 @@ interface ActivityListProps {
 }
 
 export default function ActivityList({ searchQuery, filterType }: ActivityListProps) {
-  const filteredActivities = mockActivities.filter((activity) => {
-    const matchesSearch = activity.circle.toLowerCase().includes(searchQuery.toLowerCase())
+  const { data: activitiesData, isLoading, error } = useAllActivities()
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        <span className="ml-2 text-muted-foreground">Loading activities...</span>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-destructive">Failed to load activities</p>
+      </div>
+    )
+  }
+
+  if (!activitiesData || activitiesData.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">No activity yet. Join a pool to see activities here!</p>
+      </div>
+    )
+  }
+
+  // Transform activities data to Activity format
+  const activities: Activity[] = activitiesData.map((activity) => {
+    const icon = getActivityIcon(activity.type)
+    const { color, bgColor } = getActivityColor(activity.type)
+    
+    return {
+      id: activity.id,
+      type: activity.type,
+      title: activity.title,
+      description: activity.description,
+      circle: activity.circle,
+      member: activity.member,
+      amount: activity.amount,
+      date: formatDistanceToNow(activity.timestamp, { addSuffix: true }),
+      timestamp: activity.timestamp,
+      icon,
+      color,
+      bgColor,
+    }
+  })
+
+  const filteredActivities = activities.filter((activity) => {
+    const matchesSearch = 
+      activity.circle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      activity.description.toLowerCase().includes(searchQuery.toLowerCase())
 
     let matchesFilter = true
     if (filterType === "contributions") {
-      matchesFilter = activity.type === "contribution"
+      matchesFilter = activity.type === "contribution" || activity.type === "collateral_liquidated"
     } else if (filterType === "payouts") {
       matchesFilter = activity.type === "payout"
     } else if (filterType === "cycles") {
-      matchesFilter = activity.type === "cycle_completed" || activity.type === "member_joined"
+      matchesFilter = 
+        activity.type === "cycle_completed" || 
+        activity.type === "member_joined" ||
+        activity.type === "pool_started" ||
+        activity.type === "pool_completed"
     }
 
     return matchesSearch && matchesFilter

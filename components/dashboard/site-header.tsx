@@ -11,7 +11,7 @@ export function SiteHeader() {
   const pathname = usePathname();
   const title = pathname.split("/").pop();
   const router = useRouter();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, mounted } = useTheme();
 
   const capitalizeFirstLetter = (str: string) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -41,7 +41,7 @@ export function SiteHeader() {
             className="cursor-pointer p-2 rounded-lg border border-border hover:bg-card transition-colors"
             aria-label="Toggle theme"
           >
-            {theme === "dark" ? (
+            {mounted && theme === "dark" ? (
               <Sun className="w-4 h-4 text-foreground" />
             ) : (
               <Moon className="w-4 h-4 text-foreground" />

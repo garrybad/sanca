@@ -1,8 +1,9 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAccount } from "wagmi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -23,6 +24,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { useCreatePool } from "@/hooks/useCreatePool";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 interface CreateCircleDialogProps {
   open: boolean;
@@ -34,15 +38,18 @@ export function CreateCircleDialog({
   onOpenChange,
 }: CreateCircleDialogProps) {
   const router = useRouter();
+  const { address, isConnected } = useAccount();
+  const { createPool, isPending, isConfirming, isSuccess, error, hash } =
+    useCreatePool();
+
   const [formData, setFormData] = useState({
     circleName: "",
     description: "",
     contribution: "",
-    cycleDuration: "5",
+    cycleDuration: "30", // Default 30 days
     memberCount: "5",
-    rotationOrder: "auto",
+    yieldBonusSplit: "20", // Default 20%
   });
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -53,30 +60,94 @@ export function CreateCircleDialog({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      // Simulate circle creation
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+  // Handle success - redirect to new pool
+  useEffect(() => {
+    if (isSuccess && hash) {
+      toast.success("Pool created successfully!");
       onOpenChange(false);
       // Reset form
       setFormData({
         circleName: "",
         description: "",
         contribution: "",
-        cycleDuration: "5",
+        cycleDuration: "30", // Default 30 days
         memberCount: "5",
-        rotationOrder: "auto",
+        yieldBonusSplit: "20",
       });
-      router.push("/circles/1");
-    } catch (err) {
-      console.error("Failed to create circle");
-    } finally {
-      setIsLoading(false);
+      // Wait a bit for Ponder to index, then redirect
+      setTimeout(() => {
+        // We'll need to get the pool address from the transaction receipt
+        // For now, just redirect to circles page
+        router.push("/circles");
+      }, 2000);
+    }
+  }, [isSuccess, hash, router, onOpenChange]);
+
+  // Handle errors
+  useEffect(() => {
+    if (error) {
+      toast.error(`Failed to create pool: ${error.message}`);
+    }
+  }, [error]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!isConnected) {
+      toast.error("Please connect your wallet first");
+      return;
+    }
+
+    if (!formData.circleName || !formData.contribution) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    const contribution = parseFloat(formData.contribution);
+    if (isNaN(contribution) || contribution <= 0) {
+      toast.error("Please enter a valid contribution amount");
+      return;
+    }
+
+    const maxMembers = parseInt(formData.memberCount);
+    
+    // Validate maxMembers (contract requires > 1)
+    if (isNaN(maxMembers) || maxMembers < 2) {
+      toast.error("Number of members must be at least 2");
+      return;
+    }
+    
+    // Parse days directly (already in days)
+    const periodDurationInDays = parseInt(formData.cycleDuration);
+    const yieldBonusSplit = parseInt(formData.yieldBonusSplit);
+    
+    if (isNaN(periodDurationInDays) || periodDurationInDays < 1 || periodDurationInDays > 365) {
+      toast.error("Cycle duration must be between 1 and 365 days");
+      return;
+    }
+    
+    if (isNaN(yieldBonusSplit) || yieldBonusSplit < 0 || yieldBonusSplit > 100) {
+      toast.error("Yield bonus split must be between 0 and 100");
+      return;
+    }
+
+    try {
+      await createPool({
+        maxMembers,
+        contributionPerPeriod: contribution,
+        periodDuration: periodDurationInDays,
+        yieldBonusSplit,
+        poolName: formData.circleName,
+        poolDescription: formData.description || "", // Allow empty description
+      });
+
+      toast.info("Transaction submitted. Waiting for confirmation...");
+    } catch (err: any) {
+      toast.error(`Failed to create pool: ${err.message || "Unknown error"}`);
     }
   };
+
+  const isLoading = isPending || isConfirming;
 
   const handleCancel = () => {
     onOpenChange(false);
@@ -85,9 +156,9 @@ export function CreateCircleDialog({
       circleName: "",
       description: "",
       contribution: "",
-      cycleDuration: "5",
+      cycleDuration: "30", // Default 30 days
       memberCount: "5",
-      rotationOrder: "auto",
+      yieldBonusSplit: "20",
     });
   };
 
@@ -128,12 +199,17 @@ export function CreateCircleDialog({
             </Label>
             <Textarea
               name="description"
-              placeholder="Describe your circle's purpose and goals...."
+              placeholder="Describe your circle's purpose and goals..."
+              value={formData.description}
               onChange={handleChange}
               rows={3}
               className="w-full bg-background border border-border px-3 py-2 text-foreground placeholder-muted-foreground text-sm"
             />
+            <p className="text-xs text-muted-foreground">
+              Optional: Add details about your circle's purpose
+            </p>
           </div>
+
 
           {/* Contribution Amount */}
           <div className="space-y-2">
@@ -168,24 +244,32 @@ export function CreateCircleDialog({
             {/* Cycle Duration */}
             <div className="space-y-2">
               <Label className="block text-sm font-semibold text-foreground">
-                Category
+                Duration Per Cycle (days)
               </Label>
-              <Select
+              <NumericFormat
+                id="cycleDuration"
+                className="bg-background border-border text-foreground"
+                customInput={Input}
                 value={formData.cycleDuration}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, cycleDuration: value })
-                }
-              >
-                <SelectTrigger className="w-full bg-background border border-border text-foreground">
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="3">3 months</SelectItem>
-                  <SelectItem value="5">5 months</SelectItem>
-                  <SelectItem value="6">6 months</SelectItem>
-                  <SelectItem value="12">12 months</SelectItem>
-                </SelectContent>
-              </Select>
+                allowNegative={false}
+                decimalScale={0}
+                isAllowed={(values) => {
+                  const { floatValue } = values;
+                  return floatValue === undefined || (floatValue >= 1 && floatValue <= 365);
+                }}
+                onValueChange={(values) => {
+                  const { floatValue } = values;
+                  setFormData({
+                    ...formData,
+                    cycleDuration: floatValue ? floatValue.toString() : "",
+                  });
+                }}
+                placeholder="30"
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                Each cycle lasts this duration (1-365 days). Total pool duration = {formData.cycleDuration || "0"} days × {formData.memberCount || "0"} cycles = {Number(formData.cycleDuration || 0) * Number(formData.memberCount || 0)} days
+              </p>
             </div>
 
             {/* Member Count */}
@@ -203,36 +287,48 @@ export function CreateCircleDialog({
                   <SelectValue placeholder="Select a number of members" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="2">2 members</SelectItem>
                   <SelectItem value="3">3 members</SelectItem>
                   <SelectItem value="4">4 members</SelectItem>
                   <SelectItem value="5">5 members</SelectItem>
                   <SelectItem value="6">6 members</SelectItem>
                   <SelectItem value="8">8 members</SelectItem>
+                  <SelectItem value="10">10 members</SelectItem>
+                  <SelectItem value="12">12 members</SelectItem>
+                  <SelectItem value="15">15 members</SelectItem>
+                  <SelectItem value="20">20 members</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                Minimum 2 members required
+              </p>
             </div>
           </div>
 
-          {/* Rotation Order */}
+          {/* Yield Bonus Split */}
           <div className="space-y-2">
             <Label className="block text-sm font-semibold text-foreground">
-              Rotation Order
+              Yield Bonus Split (%)
             </Label>
-            <Select
-              value={formData.rotationOrder}
-              onValueChange={(value) =>
-                setFormData({ ...formData, rotationOrder: value })
-              }
-            >
-              <SelectTrigger className="w-full bg-background border border-border text-foreground">
-                <SelectValue placeholder="Select a rotation order" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="auto">Automatic (Lottery/Random)</SelectItem>
-                <SelectItem value="manual">Manual (Members decide)</SelectItem>
-                <SelectItem value="sequential">Sequential</SelectItem>
-              </SelectContent>
-            </Select>
+            <NumericFormat
+              className="bg-background border-border text-foreground"
+              customInput={Input}
+              value={formData.yieldBonusSplit}
+              allowNegative={false}
+              suffix="%"
+              onValueChange={(values) => {
+                const { floatValue } = values;
+                setFormData({
+                  ...formData,
+                  yieldBonusSplit: floatValue ? floatValue.toString() : "0",
+                });
+              }}
+              placeholder="20"
+              required
+            />
+            <p className="text-xs text-muted-foreground">
+              Percentage of yield that goes to the winner each cycle (0-100%). Rest is compounded for all members.
+            </p>
           </div>
 
           {/* Summary */}
@@ -266,9 +362,21 @@ export function CreateCircleDialog({
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Total Commitment:</span>
+                <span className="text-muted-foreground">Duration Per Cycle:</span>
                 <span className="font-semibold text-foreground">
-                  {formData.cycleDuration} months
+                  {formData.cycleDuration} days
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Total Pool Duration:</span>
+                <span className="font-semibold text-foreground">
+                  {Number(formData.cycleDuration || 0) * Number(formData.memberCount || 0)} days
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Yield Bonus Split:</span>
+                <span className="font-semibold text-foreground">
+                  {formData.yieldBonusSplit}%
                 </span>
               </div>
             </div>
@@ -281,13 +389,26 @@ export function CreateCircleDialog({
               variant="outline"
               onClick={handleCancel}
               className="bg-transparent w-full"
+              disabled={isLoading}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading} className="w-full">
-              {isLoading ? "Creating..." : "Create Circle"}
+            <Button type="submit" disabled={isLoading || !isConnected} className="w-full">
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {isConfirming ? "Confirming..." : "Creating..."}
+                </>
+              ) : (
+                "Create Circle"
+              )}
             </Button>
           </DialogFooter>
+          {!isConnected && (
+            <p className="text-xs text-muted-foreground text-center">
+              Please connect your wallet to create a circle
+            </p>
+          )}
         </form>
       </DialogContent>
     </Dialog>

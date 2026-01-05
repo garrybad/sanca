@@ -28,7 +28,7 @@ import Image from "next/image";
 
 export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, mounted } = useTheme();
   const router = useRouter();
   const { address, isConnected } = useAccount();
 
@@ -60,13 +60,23 @@ export default function LandingPage() {
             <Link href="/">
               <div className="flex items-center gap-2 cursor-pointer">
                 <div className="w-8 h-8 bg-transparent flex items-center justify-center">
-                  <Image
-                    src="/logo/sanca-logo.svg"
-                    className={theme === "dark" ? "" : "invert"}
-                    alt="Sanca"
-                    width={32}
-                    height={32}
-                  />
+                  {mounted ? (
+                    <Image
+                      src="/logo/sanca-logo.svg"
+                      className={theme === "dark" ? "" : "invert"}
+                      alt="Sanca"
+                      width={32}
+                      height={32}
+                    />
+                  ) : (
+                    <Image
+                      src="/logo/sanca-logo.svg"
+                      className=""
+                      alt="Sanca"
+                      width={32}
+                      height={32}
+                    />
+                  )}
                 </div>
                 <span className="font-semibold text-foreground">Sanca</span>
               </div>
@@ -78,7 +88,7 @@ export default function LandingPage() {
                 className="cursor-pointer p-2 rounded-lg border border-border hover:bg-card transition-colors"
                 aria-label="Toggle theme"
               >
-                {theme === "dark" ? (
+                {mounted && theme === "dark" ? (
                   <Sun className="w-4 h-4 text-foreground" />
                 ) : (
                   <Moon className="w-4 h-4 text-foreground" />
@@ -559,17 +569,23 @@ export default function LandingPage() {
             <div className="col-span-1">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-6 h-6 bg-transparent flex items-center justify-center">
-                  {/* <span className="text-accent-foreground font-bold text-xs">
-                    R
-                  </span> */}
-
-                  <Image
-                    src="/logo/sanca-logo.svg"
-                    className={theme === "dark" ? "" : "invert"}
-                    alt="Sanca"
-                    width={32}
-                    height={32}
-                  />
+                  {mounted ? (
+                    <Image
+                      src="/logo/sanca-logo.svg"
+                      className={theme === "dark" ? "" : "invert"}
+                      alt="Sanca"
+                      width={32}
+                      height={32}
+                    />
+                  ) : (
+                    <Image
+                      src="/logo/sanca-logo.svg"
+                      className=""
+                      alt="Sanca"
+                      width={32}
+                      height={32}
+                    />
+                  )}
                 </div>
                 <span className="font-semibold text-foreground">Sanca</span>
               </div>

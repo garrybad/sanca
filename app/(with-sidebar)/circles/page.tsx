@@ -1,65 +1,56 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Plus, Search } from "lucide-react"
+import { Plus, Search, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { CreateCircleDialog } from "@/components/circles/create-circle-dialog"
-
-const mockCircles = [
-  {
-    id: 1,
-    name: "Community Builders Circle",
-    members: 5,
-    contribution: "$300",
-    status: "active",
-    created: "Jan 2025",
-    yourStatus: "member",
-    progress: 60,
-  },
-  {
-    id: 2,
-    name: "Tech Friends Savings",
-    members: 6,
-    contribution: "$500",
-    status: "active",
-    created: "Dec 2024",
-    yourStatus: "member",
-    progress: 30,
-  },
-  {
-    id: 3,
-    name: "Local Business Network",
-    members: 4,
-    contribution: "$250",
-    status: "active",
-    created: "Nov 2024",
-    yourStatus: "creator",
-    progress: 75,
-  },
-  {
-    id: 4,
-    name: "Entrepreneurs Circle",
-    members: 8,
-    contribution: "$1000",
-    status: "active",
-    created: "Sep 2024",
-    yourStatus: "pending",
-    progress: 45,
-  },
-]
+import { usePools } from "@/hooks/usePools"
+import { useAccount } from "wagmi"
+import { formatDistanceToNow } from "date-fns"
 
 export default function CirclesPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "completed">("all")
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const { address } = useAccount()
 
-  const filteredCircles = mockCircles.filter((circle) => {
-    const matchesSearch = circle.name.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesStatus = filterStatus === "all" || circle.status === filterStatus
-    return matchesSearch && matchesStatus
+  // Fetch pools dari Ponder
+  const { data: pools, isLoading, error } = usePools({
+    state: filterStatus === "all" ? undefined : filterStatus,
   })
+
+  // Filter pools berdasarkan search query
+  const filteredCircles = useMemo(() => {
+    if (!pools) return []
+
+    return pools.filter((pool) => {
+      const matchesSearch = pool.name.toLowerCase().includes(searchQuery.toLowerCase())
+      return matchesSearch
+    })
+  }, [pools, searchQuery])
+
+  // Helper untuk format USDC amount (6 decimals)
+  const formatUSDC = (amount: bigint) => {
+    return (Number(amount) / 1e6).toFixed(2)
+  }
+
+  // Helper untuk calculate progress
+  const getProgress = (pool: typeof pools[0]) => {
+    if (pool.totalCycles === 0) return 0
+    return Math.round((pool.currentCycle / pool.totalCycles) * 100)
+  }
+
+  // Helper untuk check user status in pool
+  const getUserStatus = (pool: typeof pools[0]) => {
+    // TODO: Check if user is member via members query
+    // For now, just check if creator
+    if (address && pool.creator.toLowerCase() === address.toLowerCase()) {
+      return "creator"
+    }
+    return "member" // Placeholder
+  }
 
   return (
     <div className="space-y-8">
@@ -101,75 +92,114 @@ export default function CirclesPage() {
         </div>
       </div>
 
-      {/* Circles Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCircles.map((circle) => (
-          <Link key={circle.id} href={`/circles/${circle.id}`}>
-            <div className="bg-card border border-border rounded-lg p-6 hover:border-accent/50 hover:shadow-lg transition-all h-full cursor-pointer flex flex-col">
-              <div className="flex-1">
-                <div className="flex items-start justify-between mb-3">
-                  <h3 className="font-semibold text-foreground text-lg">{circle.name}</h3>
-                  <span
-                    className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                      circle.status === "active" ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {circle.status === "active" ? "Active" : "Completed"}
-                  </span>
-                </div>
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          <span className="ml-2 text-muted-foreground">Loading circles...</span>
+        </div>
+      )}
 
-                <div className="space-y-2 mb-4">
-                  <p className="text-sm text-muted-foreground">
-                    <span className="font-semibold text-foreground">{circle.members}</span> members
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    <span className="font-mono font-semibold text-foreground">{circle.contribution}</span>/month
-                  </p>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-muted-foreground">Progress</span>
-                    <span className="text-xs font-semibold text-foreground">{circle.progress}%</span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div
-                      className="bg-accent h-2 rounded-full transition-all"
-                      style={{ width: `${circle.progress}%` }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="border-t border-border pt-4 flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Created {circle.created}</span>
-                <span
-                  className={`text-xs font-semibold px-2 py-1 rounded ${
-                    circle.yourStatus === "creator"
-                      ? "bg-primary/10 text-primary"
-                      : circle.yourStatus === "pending"
-                        ? "bg-yellow-600/10 text-yellow-600"
-                        : "bg-accent/10 text-accent"
-                  }`}
-                >
-                  {circle.yourStatus === "creator" ? "Creator" : circle.yourStatus === "pending" ? "Pending" : "Member"}
-                </span>
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
-
-      {filteredCircles.length === 0 && (
+      {/* Error State */}
+      {error && (
         <div className="text-center py-12">
-          <p className="text-muted-foreground mb-4">No circles found matching your search</p>
-          <Button className="gap-2" onClick={() => setIsCreateDialogOpen(true)}>
-            <Plus className="w-4 h-4" />
-            Create Your First Circle
+          <p className="text-destructive mb-4">Failed to load circles: {error.message}</p>
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            Retry
           </Button>
         </div>
+      )}
+
+      {/* Circles Grid */}
+      {!isLoading && !error && (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCircles.map((pool) => {
+              const progress = getProgress(pool)
+              const userStatus = getUserStatus(pool)
+              const createdDate = new Date(Number(pool.createdAtTimestamp) * 1000)
+
+              return (
+                <Link key={pool.id} href={`/circles/${pool.id}`}>
+                  <div className="bg-card border border-border rounded-lg p-6 hover:border-accent/50 hover:shadow-lg transition-all h-full cursor-pointer flex flex-col">
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="font-semibold text-foreground text-lg">{pool.name}</h3>
+                        <span
+                          className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                            pool.state === "Active"
+                              ? "bg-accent/10 text-accent"
+                              : pool.state === "Completed"
+                                ? "bg-green-500/10 text-green-500"
+                                : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {pool.state}
+                        </span>
+                      </div>
+
+                      <div className="space-y-2 mb-4">
+                        <p className="text-sm text-muted-foreground">
+                          <span className="font-semibold text-foreground">{pool.maxMembers}</span> max members
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          <span className="font-mono font-semibold text-foreground">
+                            ${formatUSDC(pool.contributionPerPeriod)}
+                          </span>
+                          /period
+                        </p>
+                      </div>
+
+                      {/* Progress Bar */}
+                      {pool.state === "Active" && (
+                        <div className="mb-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs text-muted-foreground">Progress</span>
+                            <span className="text-xs font-semibold text-foreground">{progress}%</span>
+                          </div>
+                          <div className="w-full bg-muted rounded-full h-2">
+                            <div
+                              className="bg-accent h-2 rounded-full transition-all"
+                              style={{ width: `${progress}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="border-t border-border pt-4 flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(createdDate, { addSuffix: true })}
+                      </span>
+                      {address && (
+                        <span
+                          className={`text-xs font-semibold px-2 py-1 rounded ${
+                            userStatus === "creator"
+                              ? "bg-primary/10 text-primary"
+                              : "bg-accent/10 text-accent"
+                          }`}
+                        >
+                          {userStatus === "creator" ? "Creator" : "Member"}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+
+          {filteredCircles.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground mb-4">No circles found matching your search</p>
+              <Button className="gap-2" onClick={() => setIsCreateDialogOpen(true)}>
+                <Plus className="w-4 h-4" />
+                Create Your First Circle
+              </Button>
+            </div>
+          )}
+        </>
       )}
 
       <CreateCircleDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} />

@@ -5,14 +5,20 @@ import { Button } from "@/components/ui/button";
 import CircleMembers from "./members";
 import CircleTimeline from "./timeline";
 import CircleActivity from "./activity";
+import type { Pool, Member, Cycle } from "@/lib/ponder";
 
 type TabType = "members" | "timeline" | "activity";
 
 interface CircleDetailTabsProps {
-  circleId: number;
+  circleId: string;
+  poolData?: {
+    pool: Pool | null;
+    members: Member[];
+    cycles: Cycle[];
+  };
 }
 
-export default function CircleDetailTabs({ circleId }: CircleDetailTabsProps) {
+export default function CircleDetailTabs({ circleId, poolData }: CircleDetailTabsProps) {
   const [activeTab, setActiveTab] = useState<TabType>("timeline");
 
   const tabs: Array<{ id: TabType; label: string }> = [
@@ -50,9 +56,15 @@ export default function CircleDetailTabs({ circleId }: CircleDetailTabsProps) {
 
       {/* Tab Content */}
       <div>
-        {activeTab === "timeline" && <CircleTimeline circleId={circleId} />}
-        {activeTab === "members" && <CircleMembers circleId={circleId} />}
-        {activeTab === "activity" && <CircleActivity circleId={circleId} />}
+        {activeTab === "timeline" && (
+          <CircleTimeline circleId={circleId} poolData={poolData} />
+        )}
+        {activeTab === "members" && (
+          <CircleMembers circleId={circleId} poolData={poolData} />
+        )}
+        {activeTab === "activity" && (
+          <CircleActivity circleId={circleId} poolData={poolData} />
+        )}
       </div>
     </div>
   );

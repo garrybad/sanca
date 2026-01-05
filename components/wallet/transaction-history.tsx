@@ -3,84 +3,57 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, Download } from "lucide-react"
+import { Search, Download, Loader2 } from "lucide-react"
 import { ArrowUpRight, ArrowDownLeft } from "lucide-react"
-
-interface Transaction {
-  id: number
-  type: "send" | "receive"
-  circle: string
-  member?: string
-  amount: string
-  date: string
-  hash: string
-  status: "completed" | "pending" | "failed"
-}
-
-const mockTransactions: Transaction[] = [
-  {
-    id: 1,
-    type: "send",
-    circle: "Community Builders Circle",
-    amount: "$300",
-    date: "Today, 2:30 PM",
-    hash: "0x7f3a...",
-    status: "completed",
-  },
-  {
-    id: 2,
-    type: "receive",
-    circle: "Tech Friends Savings",
-    member: "Sarah Chen (Payout)",
-    amount: "$2,500",
-    date: "Yesterday, 11:00 AM",
-    hash: "0x4b2e...",
-    status: "completed",
-  },
-  {
-    id: 3,
-    type: "send",
-    circle: "Local Business Network",
-    amount: "$250",
-    date: "Feb 13, 2:15 PM",
-    hash: "0x9c4d...",
-    status: "pending",
-  },
-  {
-    id: 4,
-    type: "send",
-    circle: "Community Builders Circle",
-    amount: "$300",
-    date: "Feb 10, 1:45 PM",
-    hash: "0x5a8f...",
-    status: "completed",
-  },
-  {
-    id: 5,
-    type: "send",
-    circle: "Tech Friends Savings",
-    amount: "$500",
-    date: "Feb 7, 3:20 PM",
-    hash: "0x3e2c...",
-    status: "completed",
-  },
-]
+import { useUserTransactions } from "@/hooks/useUserTransactions"
+import { ExternalLink } from "lucide-react"
 
 export default function TransactionHistory() {
   const [searchQuery, setSearchQuery] = useState("")
+  const { data: transactions, isLoading, error } = useUserTransactions()
 
-  const filteredTransactions = mockTransactions.filter((tx) =>
-    tx.circle.toLowerCase().includes(searchQuery.toLowerCase()),
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-foreground">Transaction History</h3>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          <span className="ml-2 text-muted-foreground">Loading transactions...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-foreground">Transaction History</h3>
+        </div>
+        <div className="text-center py-12">
+          <p className="text-destructive">Failed to load transactions</p>
+        </div>
+      </div>
+    )
+  }
+
+  const filteredTransactions = (transactions || []).filter((tx) =>
+    tx.circle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    tx.description.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-foreground">Transaction History</h3>
-        <Button variant="outline" size="sm" className="gap-2 bg-transparent">
-          <Download className="w-4 h-4" />
-          Export
-        </Button>
+        {filteredTransactions.length > 0 && (
+          <Button variant="outline" size="sm" className="gap-2 bg-transparent" disabled>
+            <Download className="w-4 h-4" />
+            Export
+          </Button>
+        )}
       </div>
 
       <div className="relative">
@@ -115,8 +88,8 @@ export default function TransactionHistory() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <p className="font-semibold text-foreground truncate">{tx.circle}</p>
-                  {/* {tx.member && <p className="text-xs text-muted-foreground">({tx.member})</p>} */}
                 </div>
+                <p className="text-xs text-muted-foreground mb-1">{tx.description}</p>
                 <div className="flex items-center gap-2">
                   <p className="text-xs text-muted-foreground">{tx.date}</p>
                   <span
@@ -139,7 +112,6 @@ export default function TransactionHistory() {
                 {tx.type === "send" ? "-" : "+"}
                 {tx.amount}
               </p>
-              <p className="text-xs text-muted-foreground font-mono">{tx.hash}</p>
             </div>
           </div>
         ))}
