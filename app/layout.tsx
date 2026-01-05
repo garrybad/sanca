@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 
 // import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Providers } from "@/lib/providers"
 import "./globals.css"
 
 import { Inter, JetBrains_Mono, Space_Grotesk as V0_Font_Space_Grotesk, Space_Mono as V0_Font_Space_Mono } from 'next/font/google'
@@ -30,7 +31,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`font-mono antialiased`}>
-        <ThemeProvider>{children}</ThemeProvider>
+        <Providers>
+          <ThemeProvider>{children}</ThemeProvider>
+        </Providers>
         {/* <Analytics /> */}
       </body>
     </html>

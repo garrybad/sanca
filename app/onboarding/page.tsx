@@ -11,6 +11,7 @@ import OnboardingStep4 from "@/components/onboarding/step-4"
 import OnboardingStep5 from "@/components/onboarding/step-5"
 import Image from "next/image"
 import { useTheme } from "@/components/theme-provider"
+import { useAccount } from "wagmi"
 
 const STEPS = [
   { id: 1, title: "Welcome", description: "Learn about Sanca" },
@@ -22,16 +23,28 @@ const STEPS = [
 
 export default function OnboardingPage() {
   const router = useRouter()
+  const { address, isConnected } = useAccount()
   const [currentStep, setCurrentStep] = useState(1)
   const [isCompleted, setIsCompleted] = useState(false)
 
   useEffect(() => {
-    // Check if user has already completed onboarding
-    const onboardingComplete = localStorage.getItem("onboardingComplete")
+    // Redirect to home if wallet is not connected
+    if (!isConnected || !address) {
+      router.push("/")
+      return
+    }
+
+    // Check if user has already completed onboarding for this wallet
+    const onboardingComplete = localStorage.getItem(`onboardingComplete_${address}`)
     if (onboardingComplete) {
       router.push("/dashboard")
     }
-  }, [router])
+  }, [router, isConnected, address])
+
+  // Don't render content if wallet is not connected
+  if (!isConnected || !address) {
+    return null
+  }
 
   const handleNext = () => {
     if (currentStep < STEPS.length) {
@@ -48,12 +61,18 @@ export default function OnboardingPage() {
   }
 
   const handleComplete = () => {
-    localStorage.setItem("onboardingComplete", "true")
+    if (address) {
+      localStorage.setItem(`onboardingComplete_${address}`, "true")
+      localStorage.setItem("walletAddress", address)
+    }
     router.push("/dashboard")
   }
 
   const handleSkip = () => {
-    localStorage.setItem("onboardingComplete", "true")
+    if (address) {
+      localStorage.setItem(`onboardingComplete_${address}`, "true")
+      localStorage.setItem("walletAddress", address)
+    }
     router.push("/dashboard")
   }
 

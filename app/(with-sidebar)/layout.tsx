@@ -4,7 +4,7 @@ import type React from "react";
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import DashboardSidebar from "@/components/dashboard/sidebar";
+import { useAccount } from "wagmi";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { SiteHeader } from "@/components/dashboard/site-header";
@@ -14,15 +14,20 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-//   const router = useRouter();
+  const router = useRouter();
+  const { isConnected, address } = useAccount();
 
-//   useEffect(() => {
-//     // Check if user is authenticated
-//     const user = localStorage.getItem("user");
-//     if (!user) {
-//       router.push("/auth/login");
-//     }
-//   }, [router]);
+  useEffect(() => {
+    // Redirect to home if wallet is not connected
+    if (!isConnected || !address) {
+      router.push("/");
+    }
+  }, [isConnected, address, router]);
+
+  // Don't render content if wallet is not connected
+  if (!isConnected || !address) {
+    return null;
+  }
 
   return (
     // <div className="min-h-screen bg-background flex">

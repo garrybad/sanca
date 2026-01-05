@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useAccount } from "wagmi";
 import {
   ArrowRight,
   CheckCircle2,
@@ -26,6 +29,27 @@ import Image from "next/image";
 export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const router = useRouter();
+  const { address, isConnected } = useAccount();
+
+  // Redirect to onboarding when wallet connects for the first time
+  useEffect(() => {
+    if (isConnected && address) {
+      // Store wallet address
+      localStorage.setItem("walletAddress", address);
+      
+      // Check if user has completed onboarding for this wallet
+      const onboardingComplete = localStorage.getItem(`onboardingComplete_${address}`);
+      
+      if (!onboardingComplete) {
+        // Redirect to onboarding for first-time users
+        router.push("/onboarding");
+      } else {
+        // Redirect to dashboard if already completed onboarding
+        router.push("/dashboard");
+      }
+    }
+  }, [isConnected, address, router]);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-background via-background to-background">
@@ -63,11 +87,77 @@ export default function LandingPage() {
               {/* <Link href="/auth/login" className="text-sm text-muted-foreground hover:text-foreground transition">
                 Log In
               </Link> */}
-              <Link href="/auth/login">
-                <Button size="sm" variant="outline">
-                  Connect Wallet
-                </Button>
-              </Link>
+              <ConnectButton.Custom>
+                {({
+                  account,
+                  chain,
+                  openAccountModal,
+                  openChainModal,
+                  openConnectModal,
+                  authenticationStatus,
+                  mounted,
+                }) => {
+                  const ready = mounted && authenticationStatus !== "loading";
+                  const connected =
+                    ready &&
+                    account &&
+                    chain &&
+                    (!authenticationStatus ||
+                      authenticationStatus === "authenticated");
+
+                  return (
+                    <div
+                      {...(!ready && {
+                        "aria-hidden": true,
+                        style: {
+                          opacity: 0,
+                          pointerEvents: "none",
+                          userSelect: "none",
+                        },
+                      })}
+                    >
+                      {(() => {
+                        if (!connected) {
+                          return (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={openConnectModal}
+                            >
+                              Connect Wallet
+                            </Button>
+                          );
+                        }
+
+                        if (chain.unsupported) {
+                          return (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={openChainModal}
+                            >
+                              Wrong network
+                            </Button>
+                          );
+                        }
+
+                        return (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={openAccountModal}
+                          >
+                            {account.displayName}
+                            {account.displayBalance
+                              ? ` (${account.displayBalance})`
+                              : ""}
+                          </Button>
+                        );
+                      })()}
+                    </div>
+                  );
+                }}
+              </ConnectButton.Custom>
             </div>
           </div>
         </div>

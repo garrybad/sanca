@@ -19,20 +19,37 @@ import {
 import { EllipsisVertical, LogOut, Pencil, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useAccount, useDisconnect } from "wagmi";
 
 export function NavUser() {
   const { isMobile } = useSidebar();
   const router = useRouter();
+  const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
   const [isLoading, setIsLoading] = useState(true);
   const [userName, setUserName] = useState("User");
-//   const [email, setEmail] = useState("m@example.com");
-  const [ walletAddress, setWalletAddress ] = useState("0x1234567890");
   const [avatar, setAvatar] = useState("https://github.com/shadcn.png");
   const [openEditUsernameDialog, setOpenEditUsernameDialog] = useState(false);
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("onboardingComplete");
+  // Format wallet address to show first 6 and last 4 characters
+  const formatAddress = (addr: string | undefined) => {
+    if (!addr) return "Not connected";
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  };
+
+  useEffect(() => {
+    if (address) {
+      setIsLoading(false);
+    }
+  }, [address]);
+
+  const handleDisconnect = () => {
+    disconnect();
+    // Clear any wallet-related localStorage
+    if (address) {
+      localStorage.removeItem(`onboardingComplete_${address}`);
+    }
+    localStorage.removeItem("walletAddress");
     router.push("/");
   };
 
@@ -52,8 +69,8 @@ export function NavUser() {
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{userName}</span>
-                  <span className="truncate text-xs">
-                    {walletAddress}
+                  <span className="truncate text-xs text-muted-foreground">
+                    {formatAddress(address)}
                   </span>
                 </div>
                 <EllipsisVertical className="ml-auto size-4" />
@@ -73,8 +90,8 @@ export function NavUser() {
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-medium">{userName}</span>
-                    <span className="truncate text-xs">
-                      {walletAddress}
+                    <span className="truncate text-xs text-muted-foreground">
+                      {formatAddress(address)}
                     </span>
                   </div>
                 </div>
@@ -87,9 +104,9 @@ export function NavUser() {
                 </DropdownMenuItem>
               </DropdownMenuGroup> */}
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={handleLogout} className="group cursor-pointer hover:text-white!">
+              <DropdownMenuItem onSelect={handleDisconnect} className="group cursor-pointer hover:text-white!">
                 <LogOut className="hover:text-accent"/>
-                Log out
+                Disconnect Wallet
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
