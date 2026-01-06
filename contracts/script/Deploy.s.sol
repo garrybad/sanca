@@ -15,7 +15,7 @@ import {MockOracle} from "../src/MockOracle.sol";
  */
 contract Deploy is Script {
     // Mantle Sepolia addresses
-    address constant USDC_SEPOLIA = 0xAcab8129E2cE587fD203FD770ec9ECAFA2C88080;
+    address constant USDC_SEPOLIA = 0xdd84FFAA4178Fb4549b0582a76d01bd1Fd5148bc;
     address constant SUPRA_ROUTER_SEPOLIA = 0x214F9eD5750D2fC87ae084184e999Ff7DFa1EB09;
     address constant SUPRA_DEPOSIT_SEPOLIA = 0xd6675f4fD26119bF729B0fF912c28022a63Ae0a9;
     

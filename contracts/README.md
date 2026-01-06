@@ -60,6 +60,59 @@ ETHERSCAN_API_KEY=API_KEY
 
 #### Deployment Steps
 
+**Option 1: Deploy Custom USDC Token (Recommended)**
+
+If you want to deploy your own USDC token with logoURI:
+
+1. **Deploy USDC Token**:
+```shell
+$ forge script script/DeployUSDC.s.sol:DeployUSDC \
+  --rpc-url mantle-sepolia \
+  --broadcast \
+  --verify
+```
+
+This will deploy USDC with:
+- Name: "USD Coin" (or set `USDC_NAME` env var)
+- Symbol: "USDC" (or set `USDC_SYMBOL` env var)
+- Logo URI: IPFS CID `bafkreiev6flgstwgefqpaieahshidfhz4czgbvryxbtusqzwarmp4mmkfu` (or set `USDC_LOGO_URI` env var)
+- Minter Role: Deployer address (or set `USDC_MINTER_ROLE` env var)
+
+**Customize deployment** (optional, via `.env`):
+```bash
+USDC_NAME="USD Coin"
+USDC_SYMBOL="USDC"
+USDC_LOGO_URI="ipfs://bafkreiev6flgstwgefqpaieahshidfhz4czgbvryxbtusqzwarmp4mmkfu"
+USDC_MINTER_ROLE=0xYourMinterAddress  # Optional, defaults to deployer
+```
+
+2. **Mint tokens to your wallet**:
+```shell
+$ cast send <USDC_ADDRESS> "mint(address,uint256)" <YOUR_WALLET> 1000000e6 \
+  --rpc-url mantle-sepolia \
+  --private-key $PRIVATE_KEY
+```
+
+3. **Deploy Sanca Platform** (use your USDC address):
+```shell
+# Update Deploy.s.sol to use your USDC address, or deploy manually
+$ forge script script/Deploy.s.sol:Deploy \
+  --rpc-url mantle-sepolia \
+  --broadcast \
+  --verify
+```
+
+4. **Update SancaFactory to use your USDC**:
+```shell
+$ cast send <FACTORY_ADDRESS> "setUSDC(address)" <YOUR_USDC_ADDRESS> \
+  --rpc-url mantle-sepolia \
+  --private-key $PRIVATE_KEY
+```
+
+**Option 2: Use Existing USDC (Mantle Sepolia)**
+
+If you want to use the existing USDC on Mantle Sepolia:
+
 1. **Deploy to Mantle Sepolia (Testnet)**:
 ```shell
 $ forge script script/Deploy.s.sol:Deploy \
@@ -76,6 +129,8 @@ The deployment script (`Deploy.s.sol`) deploys contracts in the following order:
 2. **MockmUSD** - Mock rebasing token (testnet only)
 3. **SancaPool** - Pool implementation contract
 4. **SancaFactory** - Factory contract for creating pools
+
+**Note**: If deploying custom USDC, deploy it first, then deploy the Sanca platform contracts.
 
 #### Post-Deployment
 

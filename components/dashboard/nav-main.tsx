@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleDollarSign, Droplet, type LucideIcon } from "lucide-react";
+import { CircleDollarSign, Droplet, type LucideIcon, Loader2 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import {
   SidebarGroup,
@@ -12,6 +12,10 @@ import {
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import Image from "next/image";
+import { useFaucetUSDC } from "@/hooks/useFaucetUSDC";
+import { useAccount } from "wagmi";
+import { toast } from "sonner";
+import { useEffect } from "react";
 
 export function NavMain({
   items,
@@ -24,6 +28,34 @@ export function NavMain({
 }) {
   const pathname = usePathname();
   const { isMobile, setOpenMobile } = useSidebar();
+  const { address, isConnected } = useAccount();
+  const { faucet, isPending, isConfirming, isSuccess, error, hash } = useFaucetUSDC();
+
+  useEffect(() => {
+    if (isSuccess) {
+      toast.success("Successfully minted 1,000 USDC!");
+    }
+  }, [isSuccess]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error.message || "Failed to mint USDC. Please try again later.");
+    }
+  }, [error]);
+
+  const handleFaucet = async () => {
+    if (!isConnected || !address) {
+      toast.error("Please connect your wallet first");
+      return;
+    }
+
+    try {
+      await faucet();
+      toast.info("Transaction submitted. Waiting for confirmation...");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to mint USDC");
+    }
+  };
 
   return (
     <SidebarGroup>
@@ -80,23 +112,27 @@ export function NavMain({
             </SidebarMenuItem>
           </Link>
 
-          <Link
-            href="https://faucet.sepolia.mantle.xyz/"
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => {
-              if (isMobile) {
-                setOpenMobile(false);
-              }
-            }}
-          >
-            <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Faucet" className="cursor-pointer">
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Faucet USDC"
+              className="cursor-pointer"
+              onClick={(e) => {
+                e.preventDefault();
+                handleFaucet();
+                if (isMobile) {
+                  setOpenMobile(false);
+                }
+              }}
+              disabled={isPending || isConfirming || !isConnected}
+            >
+              {isPending || isConfirming ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
                 <CircleDollarSign />
-                <span>Faucet USDC</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </Link>
+              )}
+              <span>Faucet USDC</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
