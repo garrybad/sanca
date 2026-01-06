@@ -25,31 +25,27 @@ import {
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import Image from "next/image";
+import { useOnboardingStatus } from "@/hooks/useOnboardingStatus";
 
 export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { theme, toggleTheme, mounted } = useTheme();
   const router = useRouter();
   const { address, isConnected } = useAccount();
+  const { isOnboarded, isReady: onboardingReady } = useOnboardingStatus();
 
   // Redirect to onboarding when wallet connects for the first time
   useEffect(() => {
+    if (!onboardingReady) return;
     if (isConnected && address) {
-      // Store wallet address
       localStorage.setItem("walletAddress", address);
-      
-      // Check if user has completed onboarding for this wallet
-      const onboardingComplete = localStorage.getItem(`onboardingComplete_${address}`);
-      
-      if (!onboardingComplete) {
-        // Redirect to onboarding for first-time users
+      if (!isOnboarded) {
         router.push("/onboarding");
       } else {
-        // Redirect to dashboard if already completed onboarding
         router.push("/dashboard");
       }
     }
-  }, [isConnected, address, router]);
+  }, [onboardingReady, isConnected, address, isOnboarded, router]);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-background via-background to-background">

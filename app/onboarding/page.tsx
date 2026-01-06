@@ -12,6 +12,7 @@ import OnboardingStep5 from "@/components/onboarding/step-5"
 import Image from "next/image"
 import { useTheme } from "@/components/theme-provider"
 import { useAccount } from "wagmi"
+import { useOnboardingStatus } from "@/hooks/useOnboardingStatus"
 
 const STEPS = [
   { id: 1, title: "Welcome", description: "Learn about Sanca" },
@@ -25,21 +26,20 @@ export default function OnboardingPage() {
   const router = useRouter()
   const { address, isConnected } = useAccount()
   const [currentStep, setCurrentStep] = useState(1)
-  const [isCompleted, setIsCompleted] = useState(false)
+  const { isOnboarded, isReady: onboardingReady, markOnboarded } = useOnboardingStatus()
 
   useEffect(() => {
+    if (!onboardingReady) return
     // Redirect to home if wallet is not connected
     if (!isConnected || !address) {
       router.push("/")
       return
     }
-
-    // Check if user has already completed onboarding for this wallet
-    const onboardingComplete = localStorage.getItem(`onboardingComplete_${address}`)
-    if (onboardingComplete) {
+    // If already onboarded, go straight to dashboard
+    if (isOnboarded) {
       router.push("/dashboard")
     }
-  }, [router, isConnected, address])
+  }, [router, isConnected, address, onboardingReady, isOnboarded])
 
   // Don't render content if wallet is not connected
   if (!isConnected || !address) {
@@ -61,18 +61,12 @@ export default function OnboardingPage() {
   }
 
   const handleComplete = () => {
-    if (address) {
-      localStorage.setItem(`onboardingComplete_${address}`, "true")
-      localStorage.setItem("walletAddress", address)
-    }
+    markOnboarded()
     router.push("/dashboard")
   }
 
   const handleSkip = () => {
-    if (address) {
-      localStorage.setItem(`onboardingComplete_${address}`, "true")
-      localStorage.setItem("walletAddress", address)
-    }
+    markOnboarded()
     router.push("/dashboard")
   }
 
