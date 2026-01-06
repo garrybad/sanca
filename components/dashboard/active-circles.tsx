@@ -15,7 +15,7 @@ export default function ActiveCirclesSection() {
   }
 
   // Helper untuk calculate progress
-  const getProgress = (pool: typeof userPools[0]) => {
+  const getProgress = (pool: any) => {
     if (!pool || pool.totalCycles === 0) return 0
     return Math.round((pool.currentCycle / pool.totalCycles) * 100)
   }

@@ -311,11 +311,12 @@ export function CreateCircleDialog({
               Yield Bonus Split (%)
             </Label>
             <NumericFormat
+              id="yieldBonusSplit"
               className="bg-background border-border text-foreground"
               customInput={Input}
               value={formData.yieldBonusSplit}
               allowNegative={false}
-              suffix="%"
+              suffix=" %"
               onValueChange={(values) => {
                 const { floatValue } = values;
                 setFormData({
@@ -323,7 +324,11 @@ export function CreateCircleDialog({
                   yieldBonusSplit: floatValue ? floatValue.toString() : "0",
                 });
               }}
-              placeholder="20"
+              isAllowed={(values) => {
+                const { floatValue } = values;
+                return floatValue === undefined || (floatValue >= 0 && floatValue <= 100);
+              }}
+              placeholder="20 %"
               required
             />
             <p className="text-xs text-muted-foreground">

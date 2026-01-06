@@ -11,6 +11,7 @@ import { JoinPoolButton } from "@/components/circles/join-pool-button"
 import { ContributeButton } from "@/components/circles/contribute-button"
 import { TriggerDrawButton } from "@/components/circles/trigger-draw-button"
 import { WithdrawButton } from "@/components/circles/withdraw-button"
+import { useEffect } from "react"
 
 export default function CircleDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -87,6 +88,11 @@ export default function CircleDetailPage() {
   const progress = getProgress();
   const totalFund = getTotalFund();
   const createdDate = new Date(Number(toBigInt(pool.createdAtTimestamp)) * 1000);
+  const isFull = data.members.length >= pool.maxMembers;
+
+  // useEffect(() => {
+  //   console.log('pool condition', pool);
+  // }, [pool]);
 
   return (
     <div className="space-y-8">
@@ -146,6 +152,11 @@ export default function CircleDetailPage() {
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               {data.members.length} joined
+              {isFull && (
+                <span className="ml-1 font-semibold text-destructive">
+                  (Pool is full)
+                </span>
+              )}
             </p>
           </div>
           <div>
@@ -195,16 +206,22 @@ export default function CircleDetailPage() {
           </div>
         )}
 
-        {/* Join Pool Button */}
+        {/* Join Pool Button / Full Info */}
         {pool.state === "Open" && (
           <div className="mt-8 pt-6 border-t border-border">
-            <JoinPoolButton
-              poolAddress={pool.id as `0x${string}`}
-              poolState={pool.state}
-              currentMembers={data.members.length}
-              maxMembers={pool.maxMembers}
-              members={data.members}
-            />
+            {isFull ? (
+              <p className="text-sm text-muted-foreground text-center">
+                This pool has reached its maximum of {pool.maxMembers} members and can no longer accept new participants.
+              </p>
+            ) : (
+              <JoinPoolButton
+                poolAddress={pool.id as `0x${string}`}
+                poolState={pool.state}
+                currentMembers={data.members.length}
+                maxMembers={pool.maxMembers}
+                members={data.members}
+              />
+            )}
           </div>
         )}
 

@@ -7,12 +7,15 @@ import { Plus, Search, Loader2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { CreateCircleDialog } from "@/components/circles/create-circle-dialog"
 import { usePools } from "@/hooks/usePools"
+import type { Pool } from "@/lib/ponder"
 import { useAccount } from "wagmi"
 import { formatDistanceToNow } from "date-fns"
 
+type FilterStatus = "all" | "Open" | "Active" | "Completed"
+
 export default function CirclesPage() {
   const [searchQuery, setSearchQuery] = useState("")
-  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "completed">("all")
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all")
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const { address } = useAccount()
 
@@ -37,13 +40,13 @@ export default function CirclesPage() {
   }
 
   // Helper untuk calculate progress
-  const getProgress = (pool: typeof pools[0]) => {
+  const getProgress = (pool: Pool) => {
     if (pool.totalCycles === 0) return 0
     return Math.round((pool.currentCycle / pool.totalCycles) * 100)
   }
 
   // Helper untuk check user status in pool
-  const getUserStatus = (pool: typeof pools[0]) => {
+  const getUserStatus = (pool: Pool) => {
     // TODO: Check if user is member via members query
     // For now, just check if creator
     if (address && pool.creator.toLowerCase() === address.toLowerCase()) {
@@ -78,7 +81,7 @@ export default function CirclesPage() {
           />
         </div>
         <div className="flex gap-2">
-          {["all", "active", "completed"].map((status) => (
+          {(["all", "Open", "Active", "Completed"] as FilterStatus[]).map((status) => (
             <Button
               key={status}
               variant={filterStatus === status ? "default" : "outline"}
@@ -86,7 +89,7 @@ export default function CirclesPage() {
               onClick={() => setFilterStatus(status as any)}
               className={filterStatus !== status ? "bg-transparent" : ""}
             >
-              {status.charAt(0).toUpperCase() + status.slice(1)}
+              {status === "all" ? "All" : status}
             </Button>
           ))}
         </div>
@@ -118,6 +121,7 @@ export default function CirclesPage() {
               const progress = getProgress(pool)
               const userStatus = getUserStatus(pool)
               const createdDate = new Date(Number(pool.createdAtTimestamp) * 1000)
+              console.log('pool condition', pool);
 
               return (
                 <Link key={pool.id} href={`/circles/${pool.id}`}>
@@ -141,6 +145,11 @@ export default function CirclesPage() {
                       <div className="space-y-2 mb-4">
                         <p className="text-sm text-muted-foreground">
                           <span className="font-semibold text-foreground">{pool.maxMembers}</span> max members
+                          {pool.state !== "Open" && (
+                            <span className="ml-1 text-xs font-semibold text-destructive">
+                              (Full)
+                            </span>
+                          )}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           <span className="font-mono font-semibold text-foreground">

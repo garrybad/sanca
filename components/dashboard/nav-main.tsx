@@ -1,6 +1,6 @@
 "use client";
 
-import { type LucideIcon } from "lucide-react";
+import { CircleDollarSign, Droplet, type LucideIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 import {
   SidebarGroup,
@@ -11,6 +11,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
+import Image from "next/image";
 
 export function NavMain({
   items,
@@ -35,8 +36,8 @@ export function NavMain({
             //     : pathname === item.url ||
             //       pathname.startsWith(item.url + "/");
             return (
-              <Link 
-                href={item.url} 
+              <Link
+                href={item.url}
                 key={item.title}
                 onClick={() => {
                   if (isMobile) {
@@ -51,8 +52,7 @@ export function NavMain({
                       pathname.startsWith(item.url)
                         ? "bg-sidebar-accent text-sidebar-accent-foreground"
                         : ""
-                      }`
-                    }
+                    }`}
                   >
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
@@ -61,6 +61,42 @@ export function NavMain({
               </Link>
             );
           })}
+          <Link
+            href="https://faucet.sepolia.mantle.xyz/"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => {
+              if (isMobile) {
+                setOpenMobile(false);
+              }
+            }}
+          >
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltip="Faucet" className="cursor-pointer">
+                <Image src="/logo/mantle-logo.png" alt="MNT" width={16} height={16} />
+                {/* <Droplet /> */}
+                <span>Faucet MNT</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </Link>
+
+          <Link
+            href="https://faucet.sepolia.mantle.xyz/"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => {
+              if (isMobile) {
+                setOpenMobile(false);
+              }
+            }}
+          >
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltip="Faucet" className="cursor-pointer">
+                <CircleDollarSign />
+                <span>Faucet USDC</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </Link>
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
