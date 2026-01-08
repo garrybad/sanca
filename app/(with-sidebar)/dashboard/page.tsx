@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Plus, Users } from "lucide-react";
@@ -11,14 +11,24 @@ import CreatedCirclesSection from "@/components/dashboard/created-circles";
 import UpcomingPayouts from "@/components/dashboard/upcoming-payouts";
 import AlertsSection from "@/components/dashboard/alerts";
 import { CreateCircleDialog } from "@/components/circles/create-circle-dialog";
-import { useUserPools } from "@/hooks/usePools";
+import { usePools, useUserPools } from "@/hooks/usePools";
 
 export default function DashboardPage() {
   const { address } = useAccount();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { data: userPools } = useUserPools();
+  const { data: allPools } = usePools();
 
-  const hasPools = userPools && userPools.length > 0;
+  const createdPools =
+    address && allPools
+      ? allPools.filter((pool) => pool.creator.toLowerCase() === address.toLowerCase())
+      : [];
+
+  const hasPools = (userPools && userPools.length > 0) || createdPools.length > 0;
+  
+  useEffect(() => {
+    console.log( "userPools", userPools);
+  }, [userPools]);
 
   return (
     <div className="space-y-8">
@@ -49,23 +59,22 @@ export default function DashboardPage() {
       {/* Alerts & Reminders */}
       <AlertsSection />
 
-      {/* Active Circles */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 flex flex-col gap-8">
-          <ActiveCirclesSection />
+      {/* Circles Content */}
+      {hasPools ? (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 flex flex-col gap-8">
+            <ActiveCirclesSection />
 
-          {/* Circles You Created */}
-          <CreatedCirclesSection />
+            {/* Circles You Created */}
+            <CreatedCirclesSection />
+          </div>
+
+          {/* Upcoming Payouts Sidebar */}
+          <div>
+            <UpcomingPayouts />
+          </div>
         </div>
-
-        {/* Upcoming Payouts Sidebar */}
-        <div>
-          <UpcomingPayouts />
-        </div>
-      </div>
-
-      {/* Empty State Fallback */}
-      {!hasPools && (
+      ) : (
         <div className="border-t border-border pt-8">
           <div className="bg-card rounded-lg border border-border p-8 text-center">
             <div className="space-y-4 max-w-md mx-auto">

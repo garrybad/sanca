@@ -96,13 +96,6 @@ export function NavUser() {
                   </div>
                 </div>
               </DropdownMenuLabel>
-              {/* <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-                <DropdownMenuItem className="group">
-                  <Pencil className="hover:text-accent"/>
-                  Profile
-                </DropdownMenuItem>
-              </DropdownMenuGroup> */}
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={handleDisconnect} className="group cursor-pointer hover:text-white!">
                 <LogOut className="hover:text-accent"/>

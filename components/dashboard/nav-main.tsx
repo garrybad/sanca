@@ -16,6 +16,7 @@ import { useFaucetUSDC } from "@/hooks/useFaucetUSDC";
 import { useAccount } from "wagmi";
 import { toast } from "sonner";
 import { useEffect } from "react";
+import { useTheme } from "../theme-provider";
 
 export function NavMain({
   items,
@@ -30,6 +31,7 @@ export function NavMain({
   const { isMobile, setOpenMobile } = useSidebar();
   const { address, isConnected } = useAccount();
   const { faucet, isPending, isConfirming, isSuccess, error, hash } = useFaucetUSDC();
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (isSuccess) {
@@ -105,7 +107,7 @@ export function NavMain({
           >
             <SidebarMenuItem>
               <SidebarMenuButton tooltip="Faucet" className="cursor-pointer">
-                <Image src="/logo/mantle-logo.png" alt="MNT" width={16} height={16} />
+                <Image src="/logo/mantle-logo.svg" className={theme === "dark" ? "invert" : ""} alt="MNT" width={16} height={16} />
                 {/* <Droplet /> */}
                 <span>Faucet MNT</span>
               </SidebarMenuButton>
