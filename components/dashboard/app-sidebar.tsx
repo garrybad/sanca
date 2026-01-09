@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "../theme-provider";
 import Image from "next/image";
+import Link from "next/link";
 
 const data = {
   navMain: [
@@ -68,12 +69,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" className="cursor-pointer">
-              <div className="bg-transparent flex aspect-square size-8 items-center justify-center rounded">
-                <Image src="/logo/sanca-logo.svg" className={theme === "dark" ? "" : "invert"} alt="Sanca" width={32} height={32} />
-              </div>
-              <span className="truncate font-medium">Sanca</span>
-            </SidebarMenuButton>
+            <Link href="/">
+              <SidebarMenuButton size="lg" className="cursor-pointer">
+                <div className="bg-transparent flex aspect-square size-8 items-center justify-center rounded">
+                  <Image
+                    src="/logo/sanca-logo.svg"
+                    className={theme === "dark" ? "" : "invert"}
+                    alt="Sanca"
+                    width={32}
+                    height={32}
+                  />
+                </div>
+                <span className="truncate font-medium">Sanca</span>
+              </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>

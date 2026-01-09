@@ -248,7 +248,7 @@ export default function LandingPage() {
                 </ActionButton> */}
               </div>
 
-              <div className="flex items-center gap-6 pt-4">
+              {/* <div className="flex items-center gap-6 pt-4">
                 <div className="flex -space-x-2">
                   {[1, 2, 3].map((i) => (
                     <div
@@ -263,7 +263,7 @@ export default function LandingPage() {
                   <span className="font-semibold text-foreground">2,500+</span>{" "}
                   members saving together
                 </p>
-              </div>
+              </div> */}
             </div>
 
             {/* Hero Visual */}
@@ -447,7 +447,7 @@ export default function LandingPage() {
       </section>
 
       {/* Demo Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-card/50">
+      {/* <section className="py-20 px-4 sm:px-6 lg:px-8 bg-card/50">
         <div className="max-w-4xl mx-auto">
           <div className="text-center space-y-6 mb-12">
             <h2 className="text-4xl font-bold text-foreground">
@@ -483,7 +483,7 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* FAQ Section */}
       <section id="faqs" className="py-20 px-4 sm:px-6 lg:px-8 bg-card/50">
@@ -590,9 +590,9 @@ export default function LandingPage() {
             </ActionButton>
           </div>
 
-          <p className="text-sm text-muted-foreground">
+          {/* <p className="text-sm text-muted-foreground">
             Try as a demo user first to explore • No signup required to browse
-          </p>
+          </p> */}
         </div>
       </section>
 
@@ -675,14 +675,24 @@ export default function LandingPage() {
                 © 2026 Sanca Circle. All rights reserved.
               </p>
               <div className="flex gap-6">
-                {["Twitter", "Discord", "GitHub"].map((social) => (
-                  <a
-                    key={social}
-                    href="#"
+                {[{
+                  id: 1,
+                  name: "Twitter",
+                  url: "https://x.com/",
+                }, {
+                  id: 2,
+                  name: "GitHub",
+                  url: "https://github.com/",
+                }].map((social) => (
+                  <Link
+                    key={social.id}
+                    href={social.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-sm text-muted-foreground hover:text-foreground transition"
                   >
-                    {social}
-                  </a>
+                    {social.name}
+                  </Link>
                 ))}
               </div>
             </div>
