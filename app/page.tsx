@@ -46,11 +46,7 @@ function ActionButton({
 
   return (
     <ConnectButton.Custom>
-      {({
-        openConnectModal,
-        authenticationStatus,
-        mounted,
-      }) => {
+      {({ openConnectModal, authenticationStatus, mounted }) => {
         const ready = mounted && authenticationStatus !== "loading";
 
         const handleClick = (e: React.MouseEvent) => {
@@ -216,8 +212,54 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20 pb-32 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
+      <section className="relative overflow-hidden px-4 sm:px-6 lg:px-8 min-h-screen flex items-center justify-center">
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: `
+        linear-gradient(to right, #e7e5e4 1px, transparent 1px),
+        linear-gradient(to bottom, #e7e5e4 1px, transparent 1px)
+      `,
+            backgroundSize: "20px 20px",
+            backgroundPosition: "0 0, 0 0",
+            maskImage: `
+        repeating-linear-gradient(
+          to right,
+          black 0px,
+          black 3px,
+          transparent 3px,
+          transparent 8px
+        ),
+        repeating-linear-gradient(
+          to bottom,
+          black 0px,
+          black 3px,
+          transparent 3px,
+          transparent 8px
+        )
+      `,
+            WebkitMaskImage: `
+        repeating-linear-gradient(
+          to right,
+          black 0px,
+          black 3px,
+          transparent 3px,
+          transparent 8px
+        ),
+        repeating-linear-gradient(
+          to bottom,
+          black 0px,
+          black 3px,
+          transparent 3px,
+          transparent 8px
+        )
+      `,
+            maskComposite: "intersect",
+            WebkitMaskComposite: "source-in",
+          }}
+        />
+
+        <div className="max-w-6xl mx-auto relative w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <div className="space-y-4">
@@ -675,15 +717,18 @@ export default function LandingPage() {
                 © 2026 Sanca Circle. All rights reserved.
               </p>
               <div className="flex gap-6">
-                {[{
-                  id: 1,
-                  name: "Twitter",
-                  url: "https://x.com/",
-                }, {
-                  id: 2,
-                  name: "GitHub",
-                  url: "https://github.com/",
-                }].map((social) => (
+                {[
+                  {
+                    id: 1,
+                    name: "Twitter",
+                    url: "https://x.com/",
+                  },
+                  {
+                    id: 2,
+                    name: "GitHub",
+                    url: "https://github.com/",
+                  },
+                ].map((social) => (
                   <Link
                     key={social.id}
                     href={social.url}
