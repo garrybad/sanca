@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,56 @@ import { useTheme } from "@/components/theme-provider";
 import Image from "next/image";
 import { useOnboardingStatus } from "@/hooks/useOnboardingStatus";
 
+// Reusable button component that handles wallet connection or redirect
+function ActionButton({
+  children,
+  variant = "default",
+  size = "lg",
+  className = "",
+  redirectTo = "/circles",
+}: {
+  children: React.ReactNode;
+  variant?: "default" | "outline";
+  size?: "default" | "sm" | "lg";
+  className?: string;
+  redirectTo?: string;
+}) {
+  const router = useRouter();
+  const { isConnected } = useAccount();
+
+  return (
+    <ConnectButton.Custom>
+      {({
+        openConnectModal,
+        authenticationStatus,
+        mounted,
+      }) => {
+        const ready = mounted && authenticationStatus !== "loading";
+
+        const handleClick = (e: React.MouseEvent) => {
+          e.preventDefault();
+          if (ready && isConnected) {
+            router.push(redirectTo);
+          } else if (ready && openConnectModal) {
+            openConnectModal();
+          }
+        };
+
+        return (
+          <Button
+            size={size}
+            variant={variant}
+            className={className}
+            onClick={handleClick}
+          >
+            {children}
+          </Button>
+        );
+      }}
+    </ConnectButton.Custom>
+  );
+}
+
 export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { theme, toggleTheme, mounted } = useTheme();
@@ -34,136 +84,132 @@ export default function LandingPage() {
   const { address, isConnected } = useAccount();
   const { isOnboarded, isReady: onboardingReady } = useOnboardingStatus();
 
-  // Redirect to onboarding when wallet connects for the first time
+  // Store wallet address when connected (but don't auto-redirect)
   useEffect(() => {
-    if (!onboardingReady) return;
     if (isConnected && address) {
       localStorage.setItem("walletAddress", address);
-      if (!isOnboarded) {
-        router.push("/onboarding");
-      } else {
-        router.push("/dashboard");
-      }
     }
-  }, [onboardingReady, isConnected, address, isOnboarded, router]);
+  }, [isConnected, address]);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-background via-background to-background">
       {/* Navigation */}
       <nav className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/">
-              <div className="flex items-center gap-2 cursor-pointer">
-                <div className="w-8 h-8 bg-transparent flex items-center justify-center">
-                  {mounted ? (
-                    <Image
-                      src="/logo/sanca-logo.svg"
-                      className={theme === "dark" ? "" : "invert"}
-                      alt="Sanca"
-                      width={32}
-                      height={32}
-                    />
-                  ) : (
-                    <Image
-                      src="/logo/sanca-logo.svg"
-                      className=""
-                      alt="Sanca"
-                      width={32}
-                      height={32}
-                    />
-                  )}
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex justify-between items-center h-16">
+              <Link href="/">
+                <div className="flex items-center gap-2 cursor-pointer">
+                  <div className="w-8 h-8 bg-transparent flex items-center justify-center">
+                    {mounted ? (
+                      <Image
+                        src="/logo/sanca-logo.svg"
+                        className={theme === "dark" ? "" : "invert"}
+                        alt="Sanca"
+                        width={32}
+                        height={32}
+                      />
+                    ) : (
+                      <Image
+                        src="/logo/sanca-logo.svg"
+                        className=""
+                        alt="Sanca"
+                        width={32}
+                        height={32}
+                      />
+                    )}
+                  </div>
+                  <span className="font-semibold text-foreground">Sanca</span>
                 </div>
-                <span className="font-semibold text-foreground">Sanca</span>
-              </div>
-            </Link>
+              </Link>
 
-            <div className="flex items-center gap-4">
-              <button
-                onClick={toggleTheme}
-                className="cursor-pointer p-2 rounded-lg border border-border hover:bg-card transition-colors"
-                aria-label="Toggle theme"
-              >
-                {mounted && theme === "dark" ? (
-                  <Sun className="w-4 h-4 text-foreground" />
-                ) : (
-                  <Moon className="w-4 h-4 text-foreground" />
-                )}
-              </button>
-              {/* <Link href="/auth/login" className="text-sm text-muted-foreground hover:text-foreground transition">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={toggleTheme}
+                  className="cursor-pointer p-2 rounded-lg border border-border hover:bg-card transition-colors"
+                  aria-label="Toggle theme"
+                >
+                  {mounted && theme === "dark" ? (
+                    <Sun className="w-4 h-4 text-foreground" />
+                  ) : (
+                    <Moon className="w-4 h-4 text-foreground" />
+                  )}
+                </button>
+                {/* <Link href="/auth/login" className="text-sm text-muted-foreground hover:text-foreground transition">
                 Log In
               </Link> */}
-              <ConnectButton.Custom>
-                {({
-                  account,
-                  chain,
-                  openAccountModal,
-                  openChainModal,
-                  openConnectModal,
-                  authenticationStatus,
-                  mounted,
-                }) => {
-                  const ready = mounted && authenticationStatus !== "loading";
-                  const connected =
-                    ready &&
-                    account &&
-                    chain &&
-                    (!authenticationStatus ||
-                      authenticationStatus === "authenticated");
+                <ConnectButton.Custom>
+                  {({
+                    account,
+                    chain,
+                    openAccountModal,
+                    openChainModal,
+                    openConnectModal,
+                    authenticationStatus,
+                    mounted,
+                  }) => {
+                    const ready = mounted && authenticationStatus !== "loading";
+                    const connected =
+                      ready &&
+                      account &&
+                      chain &&
+                      (!authenticationStatus ||
+                        authenticationStatus === "authenticated");
 
-                  return (
-                    <div
-                      {...(!ready && {
-                        "aria-hidden": true,
-                        style: {
-                          opacity: 0,
-                          pointerEvents: "none",
-                          userSelect: "none",
-                        },
-                      })}
-                    >
-                      {(() => {
-                        if (!connected) {
+                    return (
+                      <div
+                        {...(!ready && {
+                          "aria-hidden": true,
+                          style: {
+                            opacity: 0,
+                            pointerEvents: "none",
+                            userSelect: "none",
+                          },
+                        })}
+                      >
+                        {(() => {
+                          if (!connected) {
+                            return (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={openConnectModal}
+                              >
+                                Connect Wallet
+                              </Button>
+                            );
+                          }
+
+                          if (chain.unsupported) {
+                            return (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={openChainModal}
+                              >
+                                Wrong network
+                              </Button>
+                            );
+                          }
+
                           return (
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={openConnectModal}
+                              onClick={openAccountModal}
                             >
-                              Connect Wallet
+                              {account.displayName}
+                              {account.displayBalance
+                                ? ` (${account.displayBalance})`
+                                : ""}
                             </Button>
                           );
-                        }
-
-                        if (chain.unsupported) {
-                          return (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={openChainModal}
-                            >
-                              Wrong network
-                            </Button>
-                          );
-                        }
-
-                        return (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={openAccountModal}
-                          >
-                            {account.displayName}
-                            {account.displayBalance
-                              ? ` (${account.displayBalance})`
-                              : ""}
-                          </Button>
-                        );
-                      })()}
-                    </div>
-                  );
-                }}
-              </ConnectButton.Custom>
+                        })()}
+                      </div>
+                    );
+                  }}
+                </ConnectButton.Custom>
+              </div>
             </div>
           </div>
         </div>
@@ -193,17 +239,13 @@ export default function LandingPage() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/auth/register">
-                  <Button size="lg" className="gap-2">
-                    Create a Circle
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
-                </Link>
-                {/* <Link href="/auth/register">
-                  <Button size="lg" variant="outline">
-                    Join Circle
-                  </Button>
-                </Link> */}
+                <ActionButton size="lg" className="gap-2">
+                  Create a Circle
+                  <ArrowRight className="w-4 h-4" />
+                </ActionButton>
+                {/* <ActionButton size="lg" variant="outline">
+                  Join Circle
+                </ActionButton> */}
               </div>
 
               <div className="flex items-center gap-6 pt-4">
@@ -539,17 +581,13 @@ export default function LandingPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/auth/register">
-              <Button size="lg" className="gap-2">
-                Create a Circle Now
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </Link>
-            <Link href="/auth/register">
-              <Button size="lg" variant="outline">
-                Browse Circles
-              </Button>
-            </Link>
+            <ActionButton size="lg" className="gap-2">
+              Create a Circle
+              <ArrowRight className="w-4 h-4" />
+            </ActionButton>
+            <ActionButton size="lg" variant="outline">
+              Browse Circles
+            </ActionButton>
           </div>
 
           <p className="text-sm text-muted-foreground">
