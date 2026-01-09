@@ -80,6 +80,10 @@ export default function LandingPage() {
   const { address, isConnected } = useAccount();
   const { isOnboarded, isReady: onboardingReady } = useOnboardingStatus();
 
+  // Hero background grid color adapts to theme
+  const heroGridColor =
+    theme === "dark" ? "rgba(148, 163, 184, 0.15)" : "#e7e5e4";
+
   // Store wallet address when connected (but don't auto-redirect)
   useEffect(() => {
     if (isConnected && address) {
@@ -217,8 +221,8 @@ export default function LandingPage() {
           className="absolute inset-0 z-0"
           style={{
             backgroundImage: `
-        linear-gradient(to right, #e7e5e4 1px, transparent 1px),
-        linear-gradient(to bottom, #e7e5e4 1px, transparent 1px)
+        linear-gradient(to right, ${heroGridColor} 1px, transparent 1px),
+        linear-gradient(to bottom, ${heroGridColor} 1px, transparent 1px)
       `,
             backgroundSize: "20px 20px",
             backgroundPosition: "0 0, 0 0",
