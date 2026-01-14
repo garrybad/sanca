@@ -7,7 +7,6 @@ TypeScript service for automatically whitelisting Sanca pools in the Supra VRF D
 The Oracle Service is responsible for:
 - Monitoring the SancaFactory contract for newly created pools
 - Automatically whitelisting new pools in the Supra VRF Deposit Contract
-- Automatically triggering draws when period ends and all members have contributed
 - Checking whitelist status before attempting to whitelist (prevents duplicate transactions)
 - Providing detailed logging and transaction tracking
 
@@ -70,28 +69,6 @@ Continuously monitor for new pools (checks every 30 seconds):
 ```bash
 npm run whitelist:watch
 ```
-
-Press `Ctrl+C` to stop the watch mode.
-
-#### Option 3: Auto-draw Service
-
-The auto-draw service monitors all active pools and automatically triggers draw when:
-- Period has ended
-- All members have contributed (or liquidated)
-- No draw is currently pending
-- Cycle is not already completed
-
-**Run once:**
-```bash
-npm run draw:once
-```
-
-**Watch mode (runs every 60 seconds):**
-```bash
-npm run draw:watch
-```
-
-**Note:** The auto-draw service uses the `autoDraw()` function in `SancaPool` contract, which can be called by anyone (not just members). This allows keeper services, bots, or automated systems to trigger draws automatically.
 
 Press `Ctrl+C` to stop the watch mode.
 

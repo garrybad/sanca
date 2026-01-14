@@ -14,22 +14,22 @@ export default createConfig({
     SancaFactory: {
       chain: "mantleSepolia",
       abi: SancaFactoryAbi,
-      address: "0x84c9dcDFd5CD9CfC464bB1418b838746AAFfD56C",
+      address: "0x5117711063B5cd297E118E28E29Ed9628eEA9B28",
       // Deployment block from latest deploy (MockOracle at block 33079689)
-      startBlock: 33410258,
+      startBlock: 33080184,
     },
     // All SancaPool clones created by the factory (dynamic source)
     SancaPool: {
       chain: "mantleSepolia",
       abi: SancaPoolAbi,
       address: factory({
-        address: "0x84c9dcDFd5CD9CfC464bB1418b838746AAFfD56C",
+        address: "0x5117711063B5cd297E118E28E29Ed9628eEA9B28",
         event: parseAbiItem(
           "event PoolCreated(address indexed pool, address indexed creator, uint8 maxMembers, uint256 contributionPerPeriod, uint256 periodDuration, uint8 yieldBonusSplit, string poolName, string poolDescription)",
         ),
         parameter: "pool",
       }),
-      startBlock: 33410258,
+      startBlock: 33080184,
     },
   },
 });

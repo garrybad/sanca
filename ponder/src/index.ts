@@ -93,29 +93,6 @@ ponder.on(
 );
 
 ponder.on(
-  "SancaPool:CycleEnded",
-  async ({ event, context }) => {
-    const { db } = context;
-    const { cycle } = event.args;
-    const poolAddress = event.log.address.toLowerCase();
-
-    // CycleEnded emits the cycle that just ended
-    // The new currentCycle is cycle + 1
-    // Update currentCycle and cycleStartTime for the new cycle
-    // Note: If pool is completed, PoolCompleted event will handle state change
-    const newCycle = Number(cycle) + 1;
-    
-    // Update pool state: increment currentCycle and update cycleStartTime
-    await db
-      .update(pools, { id: poolAddress })
-      .set({
-        currentCycle: newCycle,
-        cycleStartTime: event.block.timestamp, // New cycle starts now
-      });
-  },
-);
-
-ponder.on(
   "SancaPool:PoolCompleted",
   async ({ event, context }) => {
     const { db } = context;

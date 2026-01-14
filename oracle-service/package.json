@@ -9,8 +9,6 @@
   "scripts": {
     "whitelist:once": "tsx auto-whitelist.ts --once",
     "whitelist:watch": "tsx auto-whitelist.ts --watch",
-    "draw:once": "tsx auto-draw.ts --once",
-    "draw:watch": "tsx auto-draw.ts --watch",
     "build": "tsc",
     "start": "node dist/auto-whitelist.js"
   },

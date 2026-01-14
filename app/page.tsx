@@ -43,6 +43,7 @@ function ActionButton({
 }) {
   const router = useRouter();
   const { isConnected } = useAccount();
+  const { isOnboarded } = useOnboardingStatus();
 
   return (
     <ConnectButton.Custom>
@@ -52,7 +53,8 @@ function ActionButton({
         const handleClick = (e: React.MouseEvent) => {
           e.preventDefault();
           if (ready && isConnected) {
-            router.push(redirectTo);
+            const target = isOnboarded ? redirectTo : "/onboarding";
+            router.push(target);
           } else if (ready && openConnectModal) {
             openConnectModal();
           }

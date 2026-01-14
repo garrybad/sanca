@@ -19,9 +19,9 @@ export default function ProfilePage() {
 
   const handleCopyAddress = () => {
     if (walletAddress) {
-    navigator.clipboard.writeText(walletAddress)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+      navigator.clipboard.writeText(walletAddress)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     }
   }
 
@@ -93,26 +93,26 @@ export default function ProfilePage() {
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t border-border">
-            <div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t border-border">
+              <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Total Contributed</p>
                 <p className="text-2xl font-bold text-foreground font-mono">
                   ${stats?.totalContributed.toFixed(2) || "0.00"}
                 </p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Total Received</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Total Received</p>
                 <p className="text-2xl font-bold text-accent font-mono">
                   ${stats?.totalReceived.toFixed(2) || "0.00"}
                 </p>
-            </div>
-            <div>
+              </div>
+              <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Pending Payouts</p>
                 <p className="text-2xl font-bold text-foreground font-mono">
                   ${stats?.pendingPayouts.toFixed(2) || "0.00"}
                 </p>
-            </div>
-            <div>
+              </div>
+              <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Total Pools</p>
                 <p className="text-2xl font-bold text-foreground font-mono">
                   {stats?.totalPools || 0}

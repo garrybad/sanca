@@ -74,7 +74,7 @@ if (!envLoaded) {
 // Configuration
 const FACTORY_ADDRESS = (process.env.FACTORY_ADDRESS || 
   process.env.SANCA_FACTORY || 
-  '0x84c9dcDFd5CD9CfC464bB1418b838746AAFfD56C') as `0x${string}`;
+  '0x5117711063B5cd297E118E28E29Ed9628eEA9B28') as `0x${string}`;
 
 const DEPOSIT_CONTRACT = (process.env.DEPOSIT_CONTRACT || 
   '0xd6675f4fD26119bF729B0fF912c28022a63Ae0a9') as `0x${string}`;
@@ -82,8 +82,8 @@ const DEPOSIT_CONTRACT = (process.env.DEPOSIT_CONTRACT ||
 const RPC_URL = process.env.RPC_URL || 'https://rpc.sepolia.mantle.xyz';
 
 // 1000 GWEI = 1000 * 1e9 wei = 1_000_000_000_000 wei
-const CALLBACK_GAS_PRICE = BigInt(process.env.CALLBACK_GAS_PRICE || '1000000000');
-const CALLBACK_GAS_LIMIT = BigInt(process.env.CALLBACK_GAS_LIMIT || '8000000000');
+const CALLBACK_GAS_PRICE = BigInt(process.env.CALLBACK_GAS_PRICE || '1000000000000');
+const CALLBACK_GAS_LIMIT = BigInt(process.env.CALLBACK_GAS_LIMIT || '500000');
 
 // Supra Deposit Contract ABI (minimal interface)
 const SUPRA_DEPOSIT_ABI = [

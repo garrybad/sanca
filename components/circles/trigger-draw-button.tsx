@@ -14,7 +14,6 @@ interface TriggerDrawButtonProps {
   currentCycle: number;
   cycleStartTime: bigint;
   periodDuration: bigint;
-  onDrawTriggered?: () => void; // Callback untuk refetch data setelah draw triggered
 }
 
 export function TriggerDrawButton({
@@ -23,7 +22,6 @@ export function TriggerDrawButton({
   currentCycle,
   cycleStartTime,
   periodDuration,
-  onDrawTriggered,
 }: TriggerDrawButtonProps) {
   const { address, isConnected } = useAccount();
   const [canTrigger, setCanTrigger] = useState(false);
@@ -92,14 +90,10 @@ export function TriggerDrawButton({
   // Handle success
   useEffect(() => {
     if (isSuccess) {
-      toast.success("Draw triggered successfully! Waiting for winner selection...");
+      toast.success("Draw triggered successfully!");
       refetchPoolInfo();
-      // Call callback untuk refetch data dari Ponder
-      if (onDrawTriggered) {
-        onDrawTriggered();
-      }
     }
-  }, [isSuccess, refetchPoolInfo, onDrawTriggered]);
+  }, [isSuccess, refetchPoolInfo]);
 
   // Handle errors
   useEffect(() => {

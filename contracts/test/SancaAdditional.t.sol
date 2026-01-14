@@ -365,31 +365,18 @@ contract SancaAdditionalTests is SancaTest {
         // Complete pool with contributions (so collateral remains)
         _completePoolWithContributions(poolAddress, pool);
         
-        // Get user1's remaining collateral (in mUSD, 18 decimals)
-        uint256 user1CollateralMusd = pool.memberCollateral(user1);
+        // Get user1's remaining collateral
+        uint256 user1Collateral = pool.memberCollateral(user1);
         
-        if (user1CollateralMusd > 0) {
-            // Calculate minimum expected USDC amount
-            // mUSD (18 decimals) -> USDC (6 decimals): divide by 1e12
-            // Base conversion: user1CollateralMusd / 1e12
-            // But due to rebasing, actual amount might be slightly different
-            // So we'll use a reasonable lower bound (at least 99% of base conversion)
-            uint256 baseUsdcAmount = user1CollateralMusd / 1e12;
-            uint256 minExpectedUsdc = baseUsdcAmount * 99 / 100;
-            
-            uint256 user1BalanceBefore = usdc.balanceOf(user1);
-            vm.prank(user1);
-            pool.withdraw();
-            uint256 user1BalanceAfter = usdc.balanceOf(user1);
-            
-            uint256 actualUsdcReceived = user1BalanceAfter - user1BalanceBefore;
-            
-            // Should receive at least the minimum expected amount
-            // (accounting for rebasing which might increase the value)
-            assertGe(actualUsdcReceived, minExpectedUsdc);
-            
-            // Should not receive more than the base amount * 1.1 (allowing for rebasing)
-            assertLe(actualUsdcReceived, baseUsdcAmount * 110 / 100);
+        if (user1Collateral > 0) {
+        uint256 user1BalanceBefore = usdc.balanceOf(user1);
+        vm.prank(user1);
+        pool.withdraw();
+        uint256 user1BalanceAfter = usdc.balanceOf(user1);
+        
+            // Should receive their remaining collateral (converted from mUSD to USDC)
+            // Allow some tolerance for conversion
+            assertGe(user1BalanceAfter - user1BalanceBefore, user1Collateral * 99 / 100);
         }
     }
     

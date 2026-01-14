@@ -15,31 +15,6 @@ export const SancaPoolAbi = [
         type: "uint256",
       },
       {
-        indexed: false,
-        internalType: "uint256",
-        name: "nonce",
-        type: "uint256",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "caller",
-        type: "address",
-      },
-    ],
-    name: "AutoDrawTriggered",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "uint256",
-        name: "cycle",
-        type: "uint256",
-      },
-      {
         indexed: true,
         internalType: "address",
         name: "member",
@@ -225,13 +200,6 @@ export const SancaPoolAbi = [
     ],
     name: "YieldDistributed",
     type: "event",
-  },
-  {
-    inputs: [],
-    name: "autoDraw",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
   },
   {
     inputs: [],

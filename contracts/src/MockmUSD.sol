@@ -17,9 +17,6 @@ contract MockmUSD is ERC20, Ownable {
     // BPS denominator (10,000) - same as rUSDY
     uint256 public constant BPS_DENOMINATOR = 10_000;
     
-    // USDC decimals: 6
-    uint8 public constant USDC_DECIMALS = 6;
-    
     // Shares tracking (similar to rUSDY)
     mapping(address => uint256) private shares;
     
@@ -47,18 +44,10 @@ contract MockmUSD is ERC20, Ownable {
     }
     
     /**
-     * @notice Returns the number of decimals used to get its user representation
-     * @dev mUSD uses 18 decimals (same as rUSDY/mUSD mainnet)
-     */
-    function decimals() public pure override returns (uint8) {
-        return 18;
-    }
-    
-    /**
      * @notice Wrap USDC to mUSD (simulate deposit USDY → receive mUSD)
      * @dev In testnet: Direct 1:1 conversion. Mainnet: Add DEX swap USDC→USDY then wrap
-     * @param amount Amount of USDC to wrap (6 decimals)
-     * @return musdAmount Amount of mUSD received (18 decimals)
+     * @param amount Amount of USDC to wrap
+     * @return musdAmount Amount of mUSD received
      */
     function wrap(uint256 amount) external returns (uint256 musdAmount) {
         require(amount > 0, "MockmUSD: amount must be > 0");
@@ -69,15 +58,11 @@ contract MockmUSD is ERC20, Ownable {
         // In testnet: 1:1 conversion (no swap, no real USDY wrapping)
         // Mainnet: Would swap USDC→USDY via DEX, then wrap USDY→mUSD
         
-        // Convert USDC (6 decimals) to mUSD (18 decimals): amount * 1e12
-        uint256 musdAmount18 = amount * 1e12; // Scale from 6 to 18 decimals
-        
-        // Mint shares: musdAmount18 * BPS_DENOMINATOR (same as rUSDY)
-        // Shares represent the base amount before rebasing
-        uint256 sharesToMint = musdAmount18 * BPS_DENOMINATOR;
+        // Mint shares: amount * BPS_DENOMINATOR (same as rUSDY)
+        uint256 sharesToMint = amount * BPS_DENOMINATOR;
         _mintShares(msg.sender, sharesToMint);
         
-        // Calculate mUSD amount based on current price (with rebase)
+        // Calculate mUSD amount based on current price
         musdAmount = getRUSDYByShares(sharesToMint);
         
         emit Wrapped(msg.sender, amount, musdAmount, sharesToMint);
@@ -87,24 +72,21 @@ contract MockmUSD is ERC20, Ownable {
     /**
      * @notice Unwrap mUSD to USDC (simulate redeem mUSD → receive USDC)
      * @dev In testnet: Direct conversion. Mainnet: Unwrap mUSD→USDY then swap USDY→USDC
-     * @param amount Amount of mUSD to unwrap (18 decimals)
-     * @return usdcAmount Amount of USDC received (6 decimals)
+     * @param amount Amount of mUSD to unwrap
+     * @return usdcAmount Amount of USDC received
      */
     function unwrap(uint256 amount) external returns (uint256 usdcAmount) {
         require(amount > 0, "MockmUSD: amount must be > 0");
         
-        // Convert rUSDY amount (18 decimals) to shares
+        // Convert rUSDY amount to shares
         uint256 sharesToBurn = getSharesByRUSDY(amount);
         if (sharesToBurn < BPS_DENOMINATOR) revert UnwrapTooSmall();
         
         // Burn shares
         _burnShares(msg.sender, sharesToBurn);
         
-        // Calculate mUSD base amount (18 decimals): shares / BPS_DENOMINATOR
-        uint256 musdBaseAmount = sharesToBurn / BPS_DENOMINATOR;
-        
-        // Convert mUSD (18 decimals) to USDC (6 decimals): musdBaseAmount / 1e12
-        usdcAmount = musdBaseAmount / 1e12;
+        // Calculate USDC amount: shares / BPS_DENOMINATOR
+        usdcAmount = sharesToBurn / BPS_DENOMINATOR;
         
         // In testnet: 1:1 conversion (no swap, no real USDY unwrapping)
         // Mainnet: Would unwrap mUSD→USDY, then swap USDY→USDC via DEX
@@ -202,6 +184,7 @@ contract MockmUSD is ERC20, Ownable {
         shares[account] -= sharesAmount;
         
         // Emit Transfer event for balance change
+        uint256 balance = getRUSDYByShares(shares[account]);
         emit Transfer(account, address(0), preRebaseAmount);
     }
     
@@ -262,22 +245,19 @@ contract MockmUSD is ERC20, Ownable {
     /**
      * @notice Get accrued yield for an account
      * @param account Account to check
-     * @return Accrued yield amount (18 decimals)
-     * @dev Yield = current balance - initial balance (at base price 1e18)
+     * @return Accrued yield amount
      */
     function getAccruedYield(address account) external view returns (uint256) {
         uint256 accountShares = shares[account];
         if (accountShares == 0) return 0;
         
         // Calculate initial value (at base price 1e18)
-        // shares = musdAmount18 * BPS_DENOMINATOR
-        // initialValue = shares / BPS_DENOMINATOR = musdAmount18 (18 decimals)
         uint256 initialValue = accountShares / BPS_DENOMINATOR;
         
-        // Calculate current value with rebase (18 decimals)
+        // Calculate current value
         uint256 currentValue = getRUSDYByShares(accountShares);
         
-        // Yield = current - initial (both in 18 decimals)
+        // Yield = current - initial
         return currentValue > initialValue ? currentValue - initialValue : 0;
     }
 }

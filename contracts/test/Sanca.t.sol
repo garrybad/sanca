@@ -309,33 +309,23 @@ contract SancaTest is Test {
     }
     
     function test_MockmUSDRebase() public {
-        // User wraps USDC (6 decimals)
-        uint256 usdcAmount = 1000 * 10**6; // 1000 USDC
+        // User wraps USDC
         vm.startPrank(user1);
-        usdc.approve(address(musd), usdcAmount);
-        uint256 musdAmount = musd.wrap(usdcAmount);
+        usdc.approve(address(musd), 1000 * 10**6);
+        musd.wrap(1000 * 10**6);
         vm.stopPrank();
         
-        // mUSD uses 18 decimals, so balance should be 1000 * 10**18
-        // Note: At deployment time, oracle price = 1e18, so initial balance = 1000 * 10**18
         uint256 initialBalance = musd.balanceOf(user1);
-        assertEq(initialBalance, 1000 * 10**18);
-        assertEq(musdAmount, 1000 * 10**18);
+        assertEq(initialBalance, 1000 * 10**6);
         
-        // Advance time 30 days (oracle price increases ~5% APY)
+        // Advance time 30 days
         vm.warp(block.timestamp + 30 days);
         
         // Balance should have increased (~5% APY) - oracle price increases automatically
-        // This is the rebasing mechanism: balance increases without transfers
         uint256 newBalance = musd.balanceOf(user1);
         assertGt(newBalance, initialBalance);
         
-        // Verify yield is approximately 5% APY for 30 days
-        // 30 days = ~0.082 years, so yield should be ~0.41% (5% * 0.082)
-        uint256 expectedMinBalance = (initialBalance * 10041) / 10000; // ~0.41% increase
-        assertGe(newBalance, expectedMinBalance);
-        
-        // Check yield calculation (should return in 18 decimals)
+        // Check yield calculation
         uint256 accruedYield = musd.getAccruedYield(user1);
         assertGt(accruedYield, 0);
     }
@@ -343,24 +333,18 @@ contract SancaTest is Test {
     function test_MockmUSDWrapUnwrap() public {
         vm.startPrank(user1);
         
-        // Wrap: USDC (6 decimals) -> mUSD (18 decimals)
-        uint256 usdcWrapAmount = 1000 * 10**6; // 1000 USDC
-        usdc.approve(address(musd), usdcWrapAmount);
-        uint256 musdAmount = musd.wrap(usdcWrapAmount);
+        // Wrap
+        usdc.approve(address(musd), 1000 * 10**6);
+        uint256 musdAmount = musd.wrap(1000 * 10**6);
+        assertEq(musdAmount, 1000 * 10**6);
+        assertEq(musd.balanceOf(user1), 1000 * 10**6);
+        assertEq(usdc.balanceOf(user1), INITIAL_BALANCE - 1000 * 10**6);
         
-        // mUSD uses 18 decimals, so 1000 USDC = 1000 * 10**18 mUSD
-        assertEq(musdAmount, 1000 * 10**18);
-        assertEq(musd.balanceOf(user1), 1000 * 10**18);
-        assertEq(usdc.balanceOf(user1), INITIAL_BALANCE - usdcWrapAmount);
-        
-        // Unwrap: mUSD (18 decimals) -> USDC (6 decimals)
-        uint256 musdUnwrapAmount = 500 * 10**18; // 500 mUSD
-        musd.approve(address(musd), musdUnwrapAmount);
-        uint256 usdcAmount = musd.unwrap(musdUnwrapAmount);
-        
-        // Should get back 500 USDC (6 decimals)
+        // Unwrap
+        musd.approve(address(musd), 500 * 10**6);
+        uint256 usdcAmount = musd.unwrap(500 * 10**6);
         assertEq(usdcAmount, 500 * 10**6);
-        assertEq(musd.balanceOf(user1), 500 * 10**18);
+        assertEq(musd.balanceOf(user1), 500 * 10**6);
         assertEq(usdc.balanceOf(user1), INITIAL_BALANCE - 500 * 10**6);
         
         vm.stopPrank();

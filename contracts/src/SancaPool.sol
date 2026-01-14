@@ -93,7 +93,6 @@ contract SancaPool is ReentrancyGuard {
     event Joined(address indexed member, uint256 contribution);
     event PoolStarted(uint256 startTime, uint256 totalCycles);
     event DrawTriggered(uint256 indexed cycle, uint256 nonce);
-    event AutoDrawTriggered(uint256 indexed cycle, uint256 nonce, address indexed caller);
     event WinnerSelected(uint256 indexed cycle, address indexed winner, uint256 prize);
     event YieldDistributed(uint256 indexed cycle, address indexed winner, uint256 yieldBonus, uint256 compounded);
     event CycleEnded(uint256 indexed cycle);
@@ -231,37 +230,16 @@ contract SancaPool is ReentrancyGuard {
      * @dev Called automatically in triggerDraw() if period ended
      */
     function _liquidateMissingContributions() internal {
-        // Get current mUSD balance (with rebasing applied)
-        uint256 currentMusdBalance = IERC20(musd).balanceOf(address(this));
-        
         for (uint256 i = 0; i < members.length; i++) {
             address member = members[i];
             
-            // Skip if already contributed
-            if (cycleContributions[currentCycle][member]) {
-                continue;
-            }
-            
-            // Calculate member's proportional share of current mUSD balance
-            // This accounts for rebasing - member gets their share of the rebased balance
-            uint256 memberCurrentMusdValue = 0;
-            if (totalMusdDeposited > 0 && currentMusdBalance > 0) {
-                // Calculate member's proportional share: (memberCollateral / totalMusdDeposited) * currentBalance
-                memberCurrentMusdValue = (currentMusdBalance * memberCollateral[member]) / totalMusdDeposited;
-            }
-            
-            // Convert contributionPerPeriod (USDC, 6 decimals) to mUSD base amount (18 decimals)
-            // 10 USDC (6 decimals) = 10 * 10^6 = 10,000,000
-            // 10 mUSD base (18 decimals) = 10 * 10^18 = 10,000,000,000,000,000,000
-            // Conversion: multiply by 1e12 (10^12) to go from 6 to 18 decimals
-            uint256 musdBaseAmount = contributionPerPeriod * 1e12;
-            
-            // Check if member has enough collateral (current rebased value >= base amount needed)
-            if (memberCurrentMusdValue >= musdBaseAmount) {
+            // If member didn't contribute and has collateral, liquidate
+            if (!cycleContributions[currentCycle][member] && memberCollateral[member] >= contributionPerPeriod) {
+                uint256 musdToLiquidate = contributionPerPeriod;
+                
                 // Unwrap mUSD to USDC
-                // unwrap() will handle the conversion from rebased mUSD to USDC
-                IERC20(musd).approve(musd, musdBaseAmount);
-                uint256 usdcAmount = MockmUSD(musd).unwrap(musdBaseAmount);
+                IERC20(musd).approve(musd, musdToLiquidate);
+                uint256 usdcAmount = MockmUSD(musd).unwrap(musdToLiquidate);
                 
                 // Add to cycle balance
                 cycleUSDCBalance[currentCycle] += usdcAmount;
@@ -270,12 +248,9 @@ contract SancaPool is ReentrancyGuard {
                 // Mark as contributed (via liquidation)
                 cycleContributions[currentCycle][member] = true;
                 
-                // Deduct from collateral proportionally
-                // Calculate how much of memberCollateral to deduct based on base amount
-                // Since we're unwrapping base amount, we deduct proportional base amount from collateral
-                uint256 collateralToDeduct = (memberCollateral[member] * musdBaseAmount) / memberCurrentMusdValue;
-                memberCollateral[member] -= collateralToDeduct;
-                totalMusdDeposited -= collateralToDeduct;
+                // Deduct from collateral
+                memberCollateral[member] -= musdToLiquidate;
+                totalMusdDeposited -= musdToLiquidate;
                 
                 emit CollateralLiquidated(currentCycle, member, usdcAmount);
             }
@@ -283,10 +258,10 @@ contract SancaPool is ReentrancyGuard {
     }
     
     /**
-     * @notice Internal function to execute draw (shared logic for triggerDraw and autoDraw)
+     * @notice Trigger draw for current cycle (select winner)
      * @dev Calls Supra VRF to get random number
      */
-    function _executeDraw() internal {
+    function triggerDraw() external nonReentrant {
         require(state == PoolState.Active, "SancaPool: pool not active");
         require(block.timestamp >= cycleStartTime + periodDuration, "SancaPool: period not ended");
         require(pendingNonce == 0, "SancaPool: draw already pending");
@@ -308,7 +283,7 @@ contract SancaPool is ReentrancyGuard {
         uint256 nonce = ISupraRouter(supraRouter).generateRequest(
             "fulfillRandomness(uint256,uint256[])",
             1, // rngCount: 1 random number
-            1, // numConfirmations: 1 block confirmations (Min:1, Max:20)
+            3, // numConfirmations: 3 block confirmations (Min:1, Max:20)
             clientWalletAddress // clientWalletAddress: whitelisted EOA address
         );
         
@@ -316,37 +291,6 @@ contract SancaPool is ReentrancyGuard {
         nonceToCycle[nonce] = currentCycle;
         
         emit DrawTriggered(currentCycle, nonce);
-    }
-    
-    /**
-     * @notice Auto draw for current cycle (can be called by anyone)
-     * @dev Public function that can be called by keeper services, bots, or anyone
-     * @dev Calls Supra VRF to get random number automatically when period ends
-     */
-    function autoDraw() external nonReentrant {
-        // Store current cycle and caller before _executeDraw
-        uint256 cycleBeforeDraw = currentCycle;
-        address caller = msg.sender;
-        
-        // Call _executeDraw which will emit DrawTriggered
-        _executeDraw();
-        
-        // Get the nonce that was set by _executeDraw
-        uint256 nonce = pendingNonce;
-        
-        // Emit AutoDrawTriggered event to distinguish from manual triggerDraw
-        emit AutoDrawTriggered(cycleBeforeDraw, nonce, caller);
-    }
-    
-    /**
-     * @notice Trigger draw for current cycle (select winner)
-     * @dev Calls Supra VRF to get random number
-     * @dev Only pool members can trigger the draw (for backward compatibility)
-     * @dev For auto draw, use autoDraw() instead
-     */
-    function triggerDraw() external nonReentrant {
-        require(isMember[msg.sender], "SancaPool: only members can trigger draw");
-        _executeDraw();
     }
     
     /**
@@ -365,16 +309,10 @@ contract SancaPool is ReentrancyGuard {
         // Clear pending nonce
         pendingNonce = 0;
         
-        // Simple lottery: pick winner from eligible members (those who haven't won yet)
+        // Select winner using random number
         uint256 randomValue = _rngList[0];
-        
-        // Get eligible members (exclude previous winners)
-        address[] memory eligibleMembers = _getEligibleMembers();
-        require(eligibleMembers.length > 0, "SancaPool: no eligible members");
-        
-        // Simple lottery: pick winner using modulo (like example lottery)
-        uint256 winnerIndex = randomValue % eligibleMembers.length;
-        address winner = eligibleMembers[winnerIndex];
+        uint256 winnerIndex = randomValue % members.length;
+        address winner = members[winnerIndex];
         
         cycleWinners[currentCycle] = winner;
         
@@ -405,38 +343,6 @@ contract SancaPool is ReentrancyGuard {
             emit CycleEnded(currentCycle);
             emit PoolCompleted();
         }
-    }
-    
-    /**
-     * @notice Get eligible members (those who haven't won yet)
-     * @return Array of eligible member addresses
-     */
-    function _getEligibleMembers() internal view returns (address[] memory) {
-        address[] memory eligibleMembers = new address[](members.length);
-        uint256 eligibleCount = 0;
-        
-        for (uint256 i = 0; i < members.length; i++) {
-            bool hasWon = false;
-            // Check if this member has won in any previous cycle
-            for (uint256 j = 0; j < currentCycle; j++) {
-                if (cycleWinners[j] == members[i]) {
-                    hasWon = true;
-                    break;
-                }
-            }
-            if (!hasWon) {
-                eligibleMembers[eligibleCount] = members[i];
-                eligibleCount++;
-            }
-        }
-        
-        // Resize array to actual count
-        address[] memory result = new address[](eligibleCount);
-        for (uint256 i = 0; i < eligibleCount; i++) {
-            result[i] = eligibleMembers[i];
-        }
-        
-        return result;
     }
     
     /**

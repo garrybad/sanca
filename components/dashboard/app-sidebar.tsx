@@ -31,6 +31,7 @@ import {
   Tag,
   Users,
   Wallet,
+  Waypoints,
 } from "lucide-react";
 import { useTheme } from "../theme-provider";
 import Image from "next/image";
@@ -58,6 +59,11 @@ const data = {
       url: "/profile",
       icon: Wallet,
     },
+    {
+      title: "Onboarding",
+      url: "/onboarding",
+      icon: Waypoints,
+    }
   ],
 };
 
