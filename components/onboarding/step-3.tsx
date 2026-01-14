@@ -1,35 +1,37 @@
 export default function OnboardingStep3() {
   const responsibilities = [
     {
-      title: "Make Regular Contributions",
-      description: "Contribute the agreed amount every cycle without fail",
-      commitment: "Essential",
-    },
-    {
-      title: "Participate in Decisions",
-      description: "Be present for circle meetings and voting on important matters",
+      title: "Deposit Full Collateral Upfront",
+      description: "When you join a pool, you commit the full value of all periods in one upfront USDC deposit.",
       commitment: "Required",
     },
     {
-      title: "Maintain Trust",
-      description: "Be honest and transparent. Your reputation is your credit history",
-      commitment: "Essential",
+      title: "Contribute On Time",
+      description:
+        "Each period you still need to send your USDC contribution. If you don't, part of your mUSD collateral can be liquidated.",
+      commitment: "Required",
+    },
+    {
+      title: "Keep Your Wallet Secure",
+      description:
+        "All assets and transactions live in your own wallet. Keep your private key / seed phrase and dApp connections safe.",
+      commitment: "Important",
     },
   ]
 
   const rules = [
-    "All members must contribute on time",
-    "No dropping out mid-cycle without serious cause",
-    "Fair rotation order - typically determined by lottery or agreement",
-    "Disputes resolved through circle voting",
-    "New members can only join at the start of a cycle",
+    "Once you join a pool, you can't opt out midway until all cycles are completed.",
+    "If you miss a period contribution, the contract can liquidate part of your mUSD collateral to cover it.",
+    "Winners are selected each period using Supra VRF randomness and cannot be biased by any participant.",
+    "Collateral stays in the pool until all periods are finished, then can be withdrawn back as USDC.",
+    "New members can only join while the pool is still 'Open' and not yet full.",
   ]
 
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold text-foreground">Your Role in the Circle</h1>
-        <p className="text-lg text-muted-foreground">Understand what's expected of you as a member</p>
+        <h1 className="text-4xl font-bold text-foreground">Your Role in a Sanca Pool</h1>
+        <p className="text-lg text-muted-foreground">Understand what&apos;s expected from you as a pool member</p>
       </div>
 
       <div className="space-y-4 pt-6">

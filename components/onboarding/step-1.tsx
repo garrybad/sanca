@@ -3,16 +3,19 @@ export default function OnboardingStep1() {
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-4xl font-bold text-foreground">Welcome to Sanca</h1>
-        <p className="text-lg text-muted-foreground">Let's get you started with transparent community savings</p>
+        <p className="text-lg text-muted-foreground">
+          An on-chain rotating savings pool ( ROSCA ) with transparent rules and yield-bearing collateral.
+        </p>
       </div>
 
       <div className="space-y-4 pt-6">
         <div className="bg-background rounded-lg p-6 border border-border">
           <h3 className="font-semibold text-foreground mb-2">What is Sanca?</h3>
           <p className="text-sm text-muted-foreground">
-            A Rotating Savings and Credit Association is a group of trusted individuals who pool money together
-            regularly. Each cycle, one member receives the full fund. It's a proven system for building wealth through
-            community.
+            Sanca is an on-chain ROSCA (Rotating Savings and Credit Association) built on the Mantle network. Each
+            member deposits their full collateral in USDC upfront, which is wrapped into a yield-bearing mUSD token that
+            grows over time. Every period, one member is randomly selected to receive the period&apos;s pot while their
+            collateral stays locked and keeps earning yield.
           </p>
         </div>
 
@@ -21,24 +24,30 @@ export default function OnboardingStep1() {
           <ul className="text-sm text-muted-foreground space-y-2">
             <li className="flex items-start gap-3">
               <span className="text-accent mt-1">✓</span>
-              <span>Access credit without traditional banking requirements</span>
+              <span>All pool rules are enforced by smart contracts and verifiable on-chain at any time.</span>
             </li>
             <li className="flex items-start gap-3">
               <span className="text-accent mt-1">✓</span>
-              <span>Complete transparency in all transactions</span>
+              <span>
+                Collateral is wrapped into mUSD (mock token on testnet, real mUSD on mainnet) so it earns yield while
+                the pool runs.
+              </span>
             </li>
             <li className="flex items-start gap-3">
               <span className="text-accent mt-1">✓</span>
-              <span>Fair rotation ensures everyone gets their turn</span>
+              <span>
+                Winners are selected using Supra VRF (Verifiable Random Function), making the draw order fair and
+                provably random.
+              </span>
             </li>
           </ul>
         </div>
 
         <div className="bg-background rounded-lg p-6 border border-border">
-          <h3 className="font-semibold text-foreground mb-2">What's Next?</h3>
+          <h3 className="font-semibold text-foreground mb-2">What&apos;s next?</h3>
           <p className="text-sm text-muted-foreground">
-            We'll walk you through how circles work, explain your responsibilities, show you a live example, and then
-            you can jump into your first circle or create one.
+            In the next steps you&apos;ll see how a Sanca pool works, what your responsibilities are as a member, how
+            funds and yield are distributed, and finally you can either join an existing pool or create your own.
           </p>
         </div>
       </div>

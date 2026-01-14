@@ -1,10 +1,10 @@
 export default function OnboardingStep4() {
   const demoCircle = {
-    name: "Community Builders Circle",
+    name: "Sanca Pool Example",
     members: 6,
-    contribution: "$300",
+    contribution: "50 USDC",
     duration: "6 months",
-    fundSize: "$1,800",
+    fundSize: "300 USDC",
   }
 
   const demoTimeline = [
@@ -19,8 +19,10 @@ export default function OnboardingStep4() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold text-foreground">See It In Action</h1>
-        <p className="text-lg text-muted-foreground">Here's an example of a live circle and your payout timing</p>
+        <h1 className="text-4xl font-bold text-foreground">See a Sanca Pool in Action</h1>
+        <p className="text-lg text-muted-foreground">
+          A simple example of how a pool runs and when you can expect your payout.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
@@ -33,15 +35,15 @@ export default function OnboardingStep4() {
               <span className="font-semibold text-foreground">{demoCircle.members}</span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-border">
-              <span className="text-muted-foreground">Monthly Contribution</span>
+              <span className="text-muted-foreground">Contribution per Period</span>
               <span className="font-semibold text-foreground font-mono">{demoCircle.contribution}</span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-border">
-              <span className="text-muted-foreground">Cycle Duration</span>
+              <span className="text-muted-foreground">Period Duration</span>
               <span className="font-semibold text-foreground">{demoCircle.duration}</span>
             </div>
             <div className="flex justify-between items-center py-2">
-              <span className="text-muted-foreground">Total Fund</span>
+              <span className="text-muted-foreground">Total Pot per Period</span>
               <span className="font-semibold text-foreground font-mono text-accent text-lg">{demoCircle.fundSize}</span>
             </div>
           </div>
@@ -77,10 +79,12 @@ export default function OnboardingStep4() {
       </div>
 
       <div className="bg-accent/10 border border-accent/30 rounded-lg p-6">
-        <h3 className="font-semibold text-foreground mb-2">Your Position: Month 3 Payout</h3>
+        <h3 className="font-semibold text-foreground mb-2">Your Position: Payout in Period 3</h3>
         <p className="text-sm text-muted-foreground">
-          In this example, you'd receive your $1,800 fund in Month 3. This means you contribute for 3 months before
-          getting your payout, then continue contributing for 3 more months to complete the cycle.
+          In this example, you would receive a 300 USDC payout in period 3. That means you deposited your full
+          collateral at the start, contributed for 2 periods before your payout, and continue contributing through
+          period 6 to complete the pool. Throughout the whole lifecycle, your mUSD collateral is earning yield that is
+          partially paid out each draw and partially compounded for everyone.
         </p>
       </div>
     </div>

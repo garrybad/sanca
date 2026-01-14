@@ -278,18 +278,18 @@ export default function LandingPage() {
                   <span className="text-accent">Win Together</span>
                 </h1>
                 <p className="text-lg text-muted-foreground max-w-md">
-                  Join trusted circles for transparent rotating savings and
-                  credit. Manage funds with your community, no middleman needed.
+                  Join transparent savings pools on Mantle. Deposit full collateral once, earn yield via mUSD, and let
+                  Supra VRF fairly decide who gets each period&apos;s payout.
                 </p>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <ActionButton size="lg" className="gap-2">
-                  Create a Circle
+                  Create a Pool
                   <ArrowRight className="w-4 h-4" />
                 </ActionButton>
                 {/* <ActionButton size="lg" variant="outline">
-                  Join Circle
+                  Join Pool
                 </ActionButton> */}
               </div>
 
@@ -319,10 +319,10 @@ export default function LandingPage() {
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="text-xs text-muted-foreground">
-                        Circle Fund
+                        Pool Collateral (mUSD)
                       </p>
                       <p className="text-2xl font-mono font-bold text-foreground">
-                        $15,000
+                        25,000 mUSD
                       </p>
                     </div>
                     <div className="px-2 py-1 rounded bg-accent/10 text-accent text-xs font-semibold">
@@ -331,10 +331,10 @@ export default function LandingPage() {
                   </div>
                   <div className="pt-4 border-t border-border">
                     <p className="text-xs text-muted-foreground mb-2">
-                      Next Payout
+                      Next Supra VRF Draw
                     </p>
                     <p className="text-sm font-semibold text-foreground">
-                      March 15, 2025
+                      In 3 days
                     </p>
                   </div>
                 </div>
@@ -355,8 +355,7 @@ export default function LandingPage() {
               How Sanca Works
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              A fair and transparent system where everyone contributes and
-              receives
+              Deposit full collateral once, contribute each period, and let on-chain randomness decide the winner.
             </p>
           </div>
 
@@ -364,29 +363,30 @@ export default function LandingPage() {
             {[
               {
                 step: 1,
-                title: "Create or Join",
+                title: "Create or Join a Pool",
                 description:
-                  "Form a circle with trusted members or join an existing one",
+                  "Spin up a new Sanca pool on Mantle or join an existing one with a fixed member cap and contribution size.",
                 icon: Users,
               },
               {
                 step: 2,
-                title: "Contribute",
+                title: "Deposit Collateral",
                 description:
-                  "Regular contributions pool together for the group fund",
+                  "When you join, you deposit your full future contributions in USDC, which are wrapped into yield-bearing mUSD.",
                 icon: TrendingUp,
               },
               {
                 step: 3,
-                title: "Rotate",
-                description: "Each member receives the full fund in their turn",
+                title: "Contribute Each Period",
+                description:
+                  "Every period, members send a USDC contribution; Supra VRF picks a random winner who receives that period’s pot plus a yield bonus.",
                 icon: Lock,
               },
               {
                 step: 4,
-                title: "Complete",
+                title: "Finish & Withdraw",
                 description:
-                  "When all members receive their payout, the cycle ends",
+                  "After all cycles complete, you withdraw your remaining mUSD collateral back as USDC, including your share of compounded yield.",
                 icon: CheckCircle2,
               },
             ].map((item) => {
@@ -423,10 +423,10 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-4xl font-bold text-foreground">
-              Why Choose Sanca Circle
+              Why Choose Sanca
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Built for transparency, fairness, and financial growth
+              Built for on-chain transparency, fair randomness, and yield on sleeping capital.
             </p>
           </div>
 
@@ -434,39 +434,39 @@ export default function LandingPage() {
             {[
               {
                 icon: Check,
-                title: "Transparent Tracking",
+                title: "On-Chain Transparency",
                 description:
-                  "Every transaction is recorded and visible to all members. Real-time updates on contributions and payouts.",
+                  "All pool actions live on Mantle. Track contributions, VRF draws, and payouts directly on the explorer or in-app.",
               },
               {
                 icon: InfinityIcon,
-                title: "Fair Rotation",
+                title: "Provably Fair Draws",
                 description:
-                  "Everyone gets an equal turn to receive the full pool. No discrimination, no favoritism.",
+                  "Supra VRF V3 provides verifiable randomness for each draw, so no one can tilt the odds.",
               },
               {
                 icon: DollarSign,
-                title: "No Middleman",
+                title: "Yield on Collateral",
                 description:
-                  "Direct peer-to-peer savings. Keep more of your money without intermediaries taking cuts.",
+                  "Your upfront USDC collateral is wrapped into mUSD, a yield-bearing token, so it grows while the pool runs.",
               },
               {
                 icon: LockKeyhole,
-                title: "Secure & Trustless",
+                title: "Non-Custodial & Secure",
                 description:
-                  "Web3-powered smart contracts ensure enforceability. Your funds are protected.",
+                  "Smart contracts (SancaFactory, SancaPool, MockmUSD) hold funds according to code, not a company.",
               },
               {
                 icon: ChartColumnBig,
-                title: "Financial Inclusion",
+                title: "Configurable Pools",
                 description:
-                  "Access to credit without traditional banking requirements. Perfect for underserved communities.",
+                  "Fine-tune max members, contribution size, period duration, and yield bonus split for each community.",
               },
               {
                 icon: Handshake,
-                title: "Community Driven",
+                title: "Community First",
                 description:
-                  "Join groups you trust. Build relationships while building wealth together.",
+                  "Designed for real-world ROSCA flows with upfront collateral, late payment liquidation, and clear withdrawal rules.",
               },
             ].map((benefit, idx) => {
               const Icon = benefit.icon;
@@ -545,44 +545,44 @@ export default function LandingPage() {
           <div className="space-y-3">
             {[
               {
-                question: "What is a Sanca circle?",
+                question: "What is a Sanca pool?",
                 answer:
-                  "A Sanca is a trusted group where members contribute regular amounts to a pool. Each member takes turns receiving the entire pool amount, rotating until everyone has received their turn. It's a transparent, fair way to save and access credit without traditional banking middlemen.",
+                  "A Sanca pool is an on-chain rotating savings group (ROSCA) deployed on Mantle. Members deposit their full future contributions in USDC upfront (as collateral), which is wrapped into yield-bearing mUSD, then contribute USDC each period into a pot that is paid out to one randomly selected member.",
               },
               {
                 question: "How do I create a circle?",
                 answer:
-                  "Log into your account and click 'Create a Circle' from your dashboard. You'll set the contribution amount, frequency, number of members, and invite them to join. Once all members confirm, the circle begins its rotation schedule.",
+                  "Connect your wallet, click 'Create a Pool', and set the key parameters: max members, contribution per period, period duration, and yield bonus split. The SancaFactory contract deploys a new SancaPool for you; other members then join by depositing their full collateral.",
               },
               {
-                question: "Can I join multiple circles?",
+                question: "Can I join multiple pools?",
                 answer:
-                  "Yes, you can be a member of multiple circles simultaneously. Each circle operates independently, so you can manage different contribution amounts and schedules across multiple groups. Just ensure you have the capacity to meet all contribution obligations.",
+                  "Yes. Each SancaPool is an independent smart contract. As long as you have enough USDC and gas on Mantle, you can join several pools with different sizes and durations. Just make sure you can meet all period contributions.",
               },
               {
                 question: "What happens if someone doesn't contribute?",
                 answer:
-                  "Sanca circles rely on member trust and accountability. All contributions and member status are transparent on the blockchain. Our platform includes default management features and dispute resolution mechanisms to ensure fairness. Serious defaulters can be removed by circle administrators.",
+                  "If a member misses a period contribution, the SancaPool contract can liquidate part of their mUSD collateral to cover that period. This ensures the pot is fully funded before the Supra VRF draw runs, without relying on manual admin intervention.",
               },
               {
                 question: "How are payouts scheduled?",
                 answer:
-                  "Payouts are determined by the circle rotation schedule. Members are assigned a payout order before the circle starts. When it's your turn, you receive the full pool amount from that cycle's contributions. The next member then receives their turn in the predetermined order.",
+                  "Each period has one payout. Once all members have contributed (or been liquidated), the pool calls Supra VRF V3 to request a random number. The winner is chosen on-chain using modulo over the member list and receives that period’s USDC pot plus a share of the yield.",
               },
               {
                 question: "Is my money secure?",
                 answer:
-                  "Yes. Sanca Circle uses Web3 smart contracts to secure funds. All transactions are recorded on the blockchain, making them immutable and transparent. Your funds are held in secure wallets that only release payments according to the circle's predetermined schedule.",
+                  "Funds are held directly by smart contracts (SancaFactory, SancaPool, MockmUSD) on Mantle. All logic for joining, contributing, drawing winners, liquidating, and withdrawing is encoded on-chain and tested with Foundry. There is no custodial backend—your wallet interacts with contracts directly.",
               },
               {
-                question: "What fees does Sanca Circle charge?",
+                question: "What fees does Sanca charge?",
                 answer:
-                  "Sanca Circle operates with minimal fees. We charge a small percentage on successful payouts (typically 1-2%) to maintain the platform and provide customer support. This is significantly less than traditional financial institutions.",
+                  "At the contract level, Sanca does not charge protocol fees on deposits or payouts in this MVP. You only pay Mantle gas fees, and your Supra VRF client wallet must be funded in the Supra Deposit Contract for randomness callbacks. Frontends or integrations may add their own fees separately.",
               },
               {
                 question: "Can I leave a circle?",
                 answer:
-                  "You can request to leave a circle, but it depends on the circle's stage. If the circle hasn't started or you haven't received your payout yet, there may be financial consequences or restrictions. Check your circle's specific rules for early withdrawal policies.",
+                  "Once you join a Sanca pool and the pool becomes full/active, you are locked in until all cycles complete. There is no early exit function in the smart contracts; your collateral can only be withdrawn at the end, minus any amounts that were liquidated to cover missed contributions.",
               },
             ].map((faq, idx) => (
               <details
@@ -723,8 +723,13 @@ export default function LandingPage() {
                 {[
                   {
                     id: 1,
+                    name: "Twitter",
+                    url: "https://x.com/",
+                  },
+                  {
+                    id: 2,
                     name: "GitHub",
-                    url: "https://github.com/garrybad/sanca",
+                    url: "https://github.com/",
                   },
                 ].map((social) => (
                   <Link

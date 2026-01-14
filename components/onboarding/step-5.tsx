@@ -10,24 +10,30 @@ export default function OnboardingStep5({ onComplete }: { onComplete: () => void
         <div className="mb-4 flex items-center justify-center">
           <Sparkles className="size-12" />
         </div>
-        <h1 className="text-4xl font-bold text-foreground">You're Ready!</h1>
-        <p className="text-lg text-muted-foreground">You now understand how Sanca circles work</p>
+        <h1 className="text-4xl font-bold text-foreground">You&apos;re Ready</h1>
+        <p className="text-lg text-muted-foreground">You now understand how Sanca on‑chain pools work end‑to‑end.</p>
       </div>
 
       <div className="bg-background rounded-lg p-8 border border-border space-y-4 mt-8">
-        <h3 className="font-semibold text-foreground">What's Next?</h3>
+        <h3 className="font-semibold text-foreground">What&apos;s Next?</h3>
         <div className="space-y-3 text-sm text-muted-foreground text-left">
           <div className="flex gap-3">
             <span className="text-accent font-bold">1</span>
-            <span>Explore existing circles and find one that matches your goals</span>
+            <span>Connect your wallet to the Mantle Sepolia network and make sure you have a small amount of MNT for gas.</span>
           </div>
           <div className="flex gap-3">
             <span className="text-accent font-bold">2</span>
-            <span>Create your own circle with friends or community members</span>
+            <span>
+              Browse existing pools or create a new one, then review the details (member cap, contribution size,
+              period duration, and yield bonus split).
+            </span>
           </div>
           <div className="flex gap-3">
             <span className="text-accent font-bold">3</span>
-            <span>Track contributions and payouts in real-time on your dashboard</span>
+            <span>
+              Approve USDC and join a pool to deposit your full collateral, then use the dashboard to track
+              contributions, Supra VRF draws, payouts, and your remaining collateral over time.
+            </span>
           </div>
         </div>
       </div>

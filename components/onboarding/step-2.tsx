@@ -3,23 +3,23 @@ import { ChartColumnBig, Check, DollarSign, Lightbulb, RefreshCw } from "lucide-
 export default function OnboardingStep2() {
   const phases = [
     {
-      title: "Contribution",
-      description: "Every member contributes a fixed amount each cycle",
+      title: "Deposit Full Collateral",
+      description: "When you join a pool, you deposit the total value of all your future contributions upfront in USDC.",
       icon: ChartColumnBig,
     },
     {
-      title: "Pool",
-      description: "All contributions combine into the circle fund",
+      title: "Wrapped into mUSD",
+      description: "That USDC is wrapped into mUSD (a yield-bearing token) so the pool balance grows automatically.",
       icon: DollarSign,
     },
     {
-      title: "Rotation",
-      description: "Fund is distributed one member at a time",
+      title: "Per-Period Contribution",
+      description: "Each period, every member sends a fresh USDC contribution that funds that period&apos;s payout.",
       icon: RefreshCw,
     },
     {
-      title: "Payout",
-      description: "One member receives the entire pool each round",
+      title: "Random Draw & Payout",
+      description: "Supra VRF picks a random winner, who receives the period pot plus a share of the accrued yield.",
       icon: Check,
     },
   ];
@@ -28,10 +28,10 @@ export default function OnboardingStep2() {
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-4xl font-bold text-foreground">
-          How a Circle Works
+          How a Sanca Pool Works
         </h1>
         <p className="text-lg text-muted-foreground">
-          Understanding the cycle: Contribution → Pool → Rotation → Payout
+          High-level flow: Collateral → mUSD & Yield → Period Contributions → VRF Draw → Payout
         </p>
       </div>
 
@@ -62,14 +62,15 @@ export default function OnboardingStep2() {
           <span className="text-accent">
             <Lightbulb className="size-7" />
           </span>
-          Example: 5-Member Circle
+          Example: 5-Member Pool
         </h3>
         <div className="space-y-2 text-sm text-muted-foreground">
-          <p>• Circle Size: 5 members</p>
-          <p>• Monthly Contribution: $500 per member</p>
-          <p>• Total Monthly Pool: $2,500</p>
-          <p>• Each member receives $2,500 once every 5 months</p>
-          <p>• Total commitment: 5 months to receive your payout</p>
+          <p>• Members: 5</p>
+          <p>• Contribution per period: 50 USDC per member</p>
+          <p>• Upfront collateral per member: 50 USDC × 5 periods = 250 USDC (wrapped into mUSD)</p>
+          <p>• Period pot: 50 USDC × 5 = 250 USDC (paid out to one winner each period)</p>
+          <p>• Each period, 1 member receives 250 USDC + a bonus portion of the yield from mUSD.</p>
+          <p>• After all 5 periods are completed, members can withdraw their remaining collateral plus their share of the compounded yield.</p>
         </div>
       </div>
     </div>
