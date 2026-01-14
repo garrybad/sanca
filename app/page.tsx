@@ -723,13 +723,8 @@ export default function LandingPage() {
                 {[
                   {
                     id: 1,
-                    name: "Twitter",
-                    url: "https://x.com/",
-                  },
-                  {
-                    id: 2,
                     name: "GitHub",
-                    url: "https://github.com/",
+                    url: "https://github.com/garrybad/sanca",
                   },
                 ].map((social) => (
                   <Link
