@@ -1,0 +1,27 @@
+{
+  "name": "oracle-service",
+  "version": "1.0.0",
+  "description": "Auto-whitelist service for Sanca pools",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "auto-whitelist.ts",
+  "scripts": {
+    "whitelist:once": "tsx auto-whitelist.ts --once",
+    "whitelist:watch": "tsx auto-whitelist.ts --watch",
+    "draw:once": "tsx auto-draw.ts --once",
+    "draw:watch": "tsx auto-draw.ts --watch",
+    "build": "tsc",
+    "start": "node dist/auto-whitelist.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "viem": "^2.43.5"
+  },
+  "devDependencies": {
+    "@types/dotenv": "^6.1.1",
+    "@types/node": "^22",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.3"
+  }
+}

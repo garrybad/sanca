@@ -1,0 +1,106 @@
+graph TB
+    subgraph "🌐 Frontend Layer"
+        direction TB
+        WebApp["`**Sanca Web App**
+        Next.js 16 + React 19
+        TypeScript + Tailwind`"]
+        
+        WebApp --> Wallet["`**Wallet Integration**
+        RainbowKit + wagmi`"]
+        
+        WebApp --> UI["`**UI Components**
+        Radix UI + shadcn`"]
+    end
+    
+    subgraph "📊 Indexing Layer"
+        direction TB
+        Ponder["`**Ponder.sh**
+        Event Indexing
+        GraphQL API`"]
+        
+        Ponder --> DB["`**PostgreSQL**
+        Pools, Members, Cycles`"]
+        
+        DB --> GraphQL["`**GraphQL API**
+        Type-safe Queries`"]
+    end
+    
+    subgraph "⛓️ Blockchain - Mantle Network"
+        direction TB
+        
+        Factory["`**SancaFactory**
+        EIP-1167 Factory
+        Create Pools`"]
+        
+        Factory --> Pool1["`**SancaPool #1**`"]
+        Factory --> Pool2["`**SancaPool #2**`"]
+        Factory --> PoolN["`**SancaPool #N**`"]
+        
+        USDC["`**USDC**
+        Stablecoin`"]
+        
+        MUSD["`**mUSD (Ondo)**
+        Rebasing Yield Token`"]
+        
+        USDY["`**USDY (Ondo)**
+        Underlying Asset`"]
+        
+        SupraVRF["`**Supra VRF**
+        On-chain Randomness`"]
+    end
+    
+    subgraph "🔗 External Services"
+        direction TB
+        Ondo["`**Ondo Finance**
+        USDY/mUSD Provider
+        Institutional Yield`"]
+        
+        Agni["`**Agni DEX**
+        USDC ↔ USDY Swap
+        Mainnet Only`"]
+    end
+    
+    %% Main Connections
+    WebApp --> Factory
+    WebApp --> Pool1
+    WebApp --> Pool2
+    WebApp --> PoolN
+    WebApp --> GraphQL
+    
+    Factory -.->|Creates| Pool1
+    Factory -.->|Creates| Pool2
+    Factory -.->|Creates| PoolN
+    
+    Pool1 --> USDC
+    Pool1 --> MUSD
+    Pool1 --> SupraVRF
+    Pool2 --> USDC
+    Pool2 --> MUSD
+    Pool2 --> SupraVRF
+    PoolN --> USDC
+    PoolN --> MUSD
+    PoolN --> SupraVRF
+    
+    %% Token Flow
+    USDC -.->|Mainnet| Agni
+    Agni -.->|Swap| USDY
+    USDY -.->|Wrap| MUSD
+    MUSD -.->|Backed by| Ondo
+    
+    %% Indexing Flow
+    Factory -->|Events| Ponder
+    Pool1 -->|Events| Ponder
+    Pool2 -->|Events| Ponder
+    PoolN -->|Events| Ponder
+    
+    %% Styling
+    style WebApp fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    style Factory fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
+    style Pool1 fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
+    style Pool2 fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
+    style PoolN fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
+    style MUSD fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    style USDY fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    style Ponder fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style Ondo fill:#ffecb3,stroke:#ffa000,stroke-width:2px
+    style SupraVRF fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px

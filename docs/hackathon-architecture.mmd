@@ -1,0 +1,116 @@
+graph LR
+    subgraph "🎯 Problem Statement"
+        P1["`**Traditional ROSCA Issues**
+        - Lack of Transparency
+        - Manual Management
+        - Trust Required
+        - No Yield Generation`"]
+    end
+    
+    subgraph "💡 Sanca Solution"
+        S1["`**Web3 ROSCA Platform**
+        - Blockchain Transparency
+        - Smart Contract Automation
+        - Trustless Execution
+        - Yield via Ondo Finance`"]
+    end
+    
+    subgraph "🏗️ Architecture Overview"
+        direction TB
+        
+        subgraph "Frontend"
+            FE["`**Modern Web App**
+            Next.js + React
+            TypeScript`"]
+        end
+        
+        subgraph "Blockchain"
+            BC["`**Mantle Network**
+            Smart Contracts
+            EIP-1167 Factory`"]
+        end
+        
+        subgraph "Indexing"
+            IDX["`**Ponder.sh**
+            Real-time Indexing
+            GraphQL API`"]
+        end
+        
+        subgraph "DeFi"
+            DEFI["`**Ondo Finance**
+            mUSD Yield Token
+            Institutional Yield`"]
+        end
+    end
+    
+    subgraph "🚀 Key Features"
+        direction TB
+        F1["`**1. Transparent Pools**
+        All transactions on-chain
+        Public & Verifiable`"]
+        
+        F2["`**2. Automated Cycles**
+        Smart contract execution
+        No manual intervention`"]
+        
+        F3["`**3. Fair Randomness**
+        Supra VRF
+        Verifiable Random`"]
+        
+        F4["`**4. Yield Generation**
+        Ondo mUSD rebasing
+        Automatic accrual`"]
+        
+        F5["`**5. Collateral Protection**
+        Auto-liquidation
+        Risk mitigation`"]
+    end
+    
+    subgraph "📈 Value Proposition"
+        direction TB
+        V1["`**For Users**
+        - Earn yield on savings
+        - Transparent & fair
+        - No middleman fees
+        - Community-driven`"]
+        
+        V2["`**For Mantle**
+        - Showcases DeFi integration
+        - Ondo Finance partnership
+        - Real-world use case
+        - Scalable architecture`"]
+    end
+    
+    P1 -->|"Solves"| S1
+    S1 --> FE
+    S1 --> BC
+    S1 --> IDX
+    S1 --> DEFI
+    
+    FE --> F1
+    BC --> F2
+    BC --> F3
+    DEFI --> F4
+    BC --> F5
+    
+    F1 --> V1
+    F2 --> V1
+    F3 --> V1
+    F4 --> V1
+    F5 --> V1
+    
+    F1 --> V2
+    F2 --> V2
+    F3 --> V2
+    F4 --> V2
+    F5 --> V2
+    
+    style P1 fill:#ffcdd2,stroke:#c62828,stroke-width:2px
+    style S1 fill:#c8e6c9,stroke:#388e3c,stroke-width:3px
+    style FE fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    style BC fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
+    style IDX fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style DEFI fill:#ffecb3,stroke:#ffa000,stroke-width:2px
+    style V1 fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px
+    style V2 fill:#b2ebf2,stroke:#0097a7,stroke-width:2px
+
