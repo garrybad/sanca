@@ -47,9 +47,13 @@ export default function OnboardingPage() {
   // }, [router, isConnected, address, onboardingReady, isOnboarded])
 
   // Don't render content if wallet is not connected
-  if (!isConnected || !address) {
-    return null;
-  }
+
+  useEffect(() => {
+    if (!isConnected || !address) {
+      router.push("/");
+      return;
+    }
+  }, [isConnected, address]);
 
   const handleNext = () => {
     if (currentStep < STEPS.length) {
@@ -93,121 +97,132 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-background to-background">
-      {/* Header with Skip */}
-      <div className="border-b border-border bg-card/50 backdrop-blur">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2 cursor-pointer">
-            <div className="w-8 h-8 bg-transparent flex items-center justify-center">
-              {mounted ? (
-                <Image
-                  src="/logo/sanca-logo.svg"
-                  className={theme === "dark" ? "" : "invert"}
-                  alt="Sanca"
-                  width={32}
-                  height={32}
-                />
-              ) : (
-                <Image
-                  src="/logo/sanca-logo.svg"
-                  className=""
-                  alt="Sanca"
-                  width={32}
-                  height={32}
-                />
-              )}
-            </div>
-            <span className="font-semibold text-foreground">Sanca</span>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleSkip}
-            className="text-muted-foreground"
-          >
-            Skip
-          </Button>
-        </div>
-      </div>
-
-      {/* Progress Indicators */}
-      <div>
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Step Circle and Connecting Line */}
-          <div className="flex items-start justify-between gap-2">
-            {STEPS.map((step, idx) => (
-              <div key={step.id} className="flex flex-col items-center flex-1">
-                {/* Step Circle and Connecting Line */}
-                <div className="flex items-center w-full justify-center relative mb-4">
-                  <div
-                    className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all z-10 ${
-                      step.id < currentStep
-                        ? "bg-accent border-accent text-accent-foreground"
-                        : step.id === currentStep
-                        ? "border-accent bg-background text-accent"
-                        : "border-border bg-background text-muted-foreground"
-                    }`}
-                  >
-                    {step.id < currentStep ? (
-                      <CheckCircle2 className="w-5 h-5" />
-                    ) : (
-                      step.id
-                    )}
-                  </div>
-
-                  {/* Connecting Line */}
-                  {idx < STEPS.length - 1 && (
-                    <div
-                      className={`absolute left-1/2 top-5 w-full h-1 rounded transition-all ${
-                        step.id < currentStep ? "bg-accent" : "bg-border"
-                      }`}
-                      style={{
-                        marginLeft: "20px",
-                        width: "calc(100% - 20px)",
-                      }}
-                    ></div>
+    <>
+      {isConnected || address ? (
+        <div className="min-h-screen bg-linear-to-br from-background to-background">
+          {/* Header with Skip */}
+          <div className="border-b border-border bg-card/50 backdrop-blur">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+              <div className="flex items-center gap-2 cursor-pointer">
+                <div className="w-8 h-8 bg-transparent flex items-center justify-center">
+                  {mounted ? (
+                    <Image
+                      src="/logo/sanca-logo.svg"
+                      className={theme === "dark" ? "" : "invert"}
+                      alt="Sanca"
+                      width={32}
+                      height={32}
+                    />
+                  ) : (
+                    <Image
+                      src="/logo/sanca-logo.svg"
+                      className=""
+                      alt="Sanca"
+                      width={32}
+                      height={32}
+                    />
                   )}
                 </div>
-
-                {/* Title and Description - Centered Below Circle */}
-                <div className="text-center">
-                  <p className="text-xs font-semibold text-foreground">
-                    {step.title}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {step.description}
-                  </p>
-                </div>
+                <span className="font-semibold text-foreground">Sanca</span>
               </div>
-            ))}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSkip}
+                className="text-muted-foreground"
+              >
+                Skip
+              </Button>
+            </div>
+          </div>
+
+          {/* Progress Indicators */}
+          <div>
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              {/* Step Circle and Connecting Line */}
+              <div className="flex items-start justify-between gap-2">
+                {STEPS.map((step, idx) => (
+                  <div
+                    key={step.id}
+                    className="flex flex-col items-center flex-1"
+                  >
+                    {/* Step Circle and Connecting Line */}
+                    <div className="flex items-center w-full justify-center relative mb-4">
+                      <div
+                        className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all z-10 ${
+                          step.id < currentStep
+                            ? "bg-accent border-accent text-accent-foreground"
+                            : step.id === currentStep
+                            ? "border-accent bg-background text-accent"
+                            : "border-border bg-background text-muted-foreground"
+                        }`}
+                      >
+                        {step.id < currentStep ? (
+                          <CheckCircle2 className="w-5 h-5" />
+                        ) : (
+                          step.id
+                        )}
+                      </div>
+
+                      {/* Connecting Line */}
+                      {idx < STEPS.length - 1 && (
+                        <div
+                          className={`absolute left-1/2 top-5 w-full h-1 rounded transition-all ${
+                            step.id < currentStep ? "bg-accent" : "bg-border"
+                          }`}
+                          style={{
+                            marginLeft: "20px",
+                            width: "calc(100% - 20px)",
+                          }}
+                        ></div>
+                      )}
+                    </div>
+
+                    {/* Title and Description - Centered Below Circle */}
+                    <div className="text-center">
+                      <p className="text-xs font-semibold text-foreground">
+                        {step.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {step.description}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Step Content */}
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="bg-transparent border border-border rounded-lg p-8 sm:p-12 min-h-96 flex flex-col justify-between">
+              {renderStep()}
+            </div>
+          </div>
+
+          {/* Navigation Footer */}
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+            <div className="flex gap-4 justify-between mt-8">
+              <Button
+                variant="outline"
+                onClick={handlePrevious}
+                disabled={currentStep === 1}
+                className="flex-1 bg-transparent"
+              >
+                Previous
+              </Button>
+              <Button onClick={handleNext} className="flex-1 gap-2">
+                {currentStep === STEPS.length ? "Go to Dashboard" : "Next"}
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Step Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-transparent border border-border rounded-lg p-8 sm:p-12 min-h-96 flex flex-col justify-between">
-          {renderStep()}
+      ) : (
+        <div className="min-h-screen bg-linear-to-br from-background to-background flex items-center justify-center">
+          {/* <span className="text-sm text-muted-foreground">Loading…</span> */}
         </div>
-      </div>
-
-      {/* Navigation Footer */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-        <div className="flex gap-4 justify-between mt-8">
-          <Button
-            variant="outline"
-            onClick={handlePrevious}
-            disabled={currentStep === 1}
-            className="flex-1 bg-transparent"
-          >
-            Previous
-          </Button>
-          <Button onClick={handleNext} className="flex-1 gap-2">
-            {currentStep === STEPS.length ? "Go to Dashboard" : "Next"}
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 }
