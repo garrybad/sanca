@@ -500,6 +500,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Ondo Finance**: https://ondo.finance/
 
 ## 👥 Team
+| Member | Role | Contact |
+| --- | --- | --- |
+| Garry | Fullstack | [Github](https://github.com/garrybad) |
 
 Built for Mantle Hackathon
 
