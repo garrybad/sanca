@@ -9,16 +9,74 @@ import { usePoolDetail } from "@/hooks/usePools"
 import { formatDistanceToNow, format } from "date-fns"
 import { JoinPoolButton } from "@/components/circles/join-pool-button"
 import { ContributeButton } from "@/components/circles/contribute-button"
-import { TriggerDrawButton } from "@/components/circles/trigger-draw-button"
 import { WithdrawButton } from "@/components/circles/withdraw-button"
+// import { CycleCountdown } from "@/components/circles/cycle-countdown"
 import { useEffect } from "react"
+import { useWatchContractEvent } from "wagmi"
+import { SancaPoolAbi } from "@/lib/abis"
+import { toast } from "sonner"
+import { CycleCountdown } from "@/components/circles/cycle-countdown"
 
 export default function CircleDetailPage() {
   const { id } = useParams<{ id: string }>();
   const poolId = id as string;
 
   // Fetch pool detail dari Ponder
-  const { data, isLoading, error } = usePoolDetail(poolId);
+  const { data, isLoading, error, refetch: refetchPoolDetail } = usePoolDetail(poolId);
+
+  // Watch for WinnerSelected event untuk auto-refresh setelah winner selected
+  useWatchContractEvent({
+    address: poolId as `0x${string}` | undefined,
+    abi: SancaPoolAbi,
+    eventName: "WinnerSelected",
+    onLogs: (logs) => {
+      if (logs.length > 0 && logs[0].args) {
+        const args = logs[0].args;
+        const cycle = args.cycle;
+        toast.success(`Winner selected for cycle ${cycle?.toString() ?? 'unknown'}! Refreshing data...`);
+        // Wait a bit untuk Ponder index events, lalu refetch
+        setTimeout(() => {
+          refetchPoolDetail();
+        }, 5000); // Wait 5 seconds untuk Ponder index
+      }
+    },
+  });
+
+  // Watch for CycleEnded event untuk auto-refresh ketika cycle baru dimulai
+  useWatchContractEvent({
+    address: poolId as `0x${string}` | undefined,
+    abi: SancaPoolAbi,
+    eventName: "CycleEnded",
+    onLogs: (logs) => {
+      if (logs.length > 0 && logs[0].args) {
+        const args = logs[0].args;
+        const cycle = args.cycle;
+        toast.info(`Cycle ${cycle?.toString() ?? 'unknown'} ended. Starting next cycle...`);
+        // Wait a bit untuk Ponder index events, lalu refetch
+        setTimeout(() => {
+          refetchPoolDetail();
+        }, 5000); // Wait 5 seconds untuk Ponder index
+      }
+    },
+  });
+
+  // Watch for DrawTriggered event untuk auto-refresh setelah draw triggered
+  useWatchContractEvent({
+    address: poolId as `0x${string}` | undefined,
+    abi: SancaPoolAbi,
+    eventName: "DrawTriggered",
+    onLogs: (logs) => {
+      if (logs.length > 0 && logs[0].args) {
+        const args = logs[0].args;
+        const cycle = args.cycle;
+        toast.info(`Draw triggered for cycle ${cycle?.toString() ?? 'unknown'}! Waiting for winner...`);
+        // Wait a bit untuk Ponder index events, lalu refetch
+        setTimeout(() => {
+          refetchPoolDetail();
+        }, 3000); // Wait 3 seconds untuk Ponder index
+      }
+    },
+  });
 
   // Helper untuk convert string/number ke BigInt
   const toBigInt = (value: bigint | string | number): bigint => {
@@ -34,9 +92,23 @@ export default function CircleDetailPage() {
   };
 
   // Helper untuk calculate progress
+  // Progress = jumlah cycle yang sudah completed / total cycles
+  // currentCycle adalah 0-indexed, jadi cycle yang sudah completed = currentCycle + 1
+  // Tapi jika cycle saat ini belum completed, maka completed = currentCycle
   const getProgress = () => {
     if (!data?.pool || data.pool.totalCycles === 0) return 0;
-    return Math.round((data.pool.currentCycle / data.pool.totalCycles) * 100);
+    // Count completed cycles dari data.cycles
+    const completedCycles = data.cycles?.filter((cycle: any) => cycle.winner !== null).length || 0;
+    // Jika ada completed cycles, gunakan itu, jika tidak gunakan currentCycle sebagai fallback
+    const cyclesCompleted = completedCycles > 0 ? completedCycles : data.pool.currentCycle;
+    return Math.round((cyclesCompleted / data.pool.totalCycles) * 100);
+  };
+  
+  // Helper untuk get completed cycles count
+  const getCompletedCyclesCount = () => {
+    if (!data?.pool) return 0;
+    const completedCycles = data.cycles?.filter((cycle: any) => cycle.winner !== null).length || 0;
+    return completedCycles > 0 ? completedCycles : data.pool.currentCycle;
   };
 
   // Helper untuk calculate total fund (contribution * maxMembers)
@@ -201,7 +273,7 @@ export default function CircleDetailPage() {
               ></div>
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              Cycle {pool.currentCycle} of {pool.totalCycles} completed
+              {getCompletedCyclesCount()} of {pool.totalCycles} cycles completed
             </p>
           </div>
         )}
@@ -225,11 +297,13 @@ export default function CircleDetailPage() {
           </div>
         )}
 
-        {/* Contribute Button */}
+        {/* Contribute Button & Countdown */}
         {pool.state === "Active" && (
           <div className="mt-8 pt-6 border-t border-border space-y-6">
             <div>
-              <h3 className="font-semibold text-foreground mb-4">Cycle {pool.currentCycle + 1} Contribution</h3>
+              <h3 className="font-semibold text-foreground mb-4">
+                Cycle {pool.currentCycle + 1} Contribution
+              </h3>
               <ContributeButton
                 poolAddress={pool.id as `0x${string}`}
                 poolState={pool.state}
@@ -239,16 +313,16 @@ export default function CircleDetailPage() {
               />
             </div>
             
-            {/* Trigger Draw Button */}
+            {/* Cycle Countdown */}
             <div>
-              <h3 className="font-semibold text-foreground mb-4">Trigger Draw</h3>
-              <TriggerDrawButton
-                poolAddress={pool.id as `0x${string}`}
-                poolState={pool.state}
-                currentCycle={pool.currentCycle}
+              <h3 className="font-semibold text-foreground mb-4">Cycle Period</h3>
+              <CycleCountdown
                 cycleStartTime={toBigInt(pool.cycleStartTime)}
                 periodDuration={toBigInt(pool.periodDuration)}
               />
+              <p className="text-xs text-muted-foreground text-center mt-2">
+                Draw will be triggered automatically when period ends and all members have contributed
+              </p>
             </div>
           </div>
         )}
